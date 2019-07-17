@@ -12,6 +12,8 @@ use Validator;
 use Hash;
 use App\User;
 use App\Admin;
+use Auth;
+use Route;
 use App\Http\ViewModel\ResultVM;
 class AdminController extends Controller
 {
@@ -55,7 +57,7 @@ class AdminController extends Controller
              return Response::json($this->_result,200);
 
         }
- 
+
             public function get_all_admin()
             {
 
@@ -74,13 +76,13 @@ class AdminController extends Controller
              }
 
 
-	public function add_role(Request $request) 
+	public function add_role(Request $request)
  	    {
 	 	    	$validation=Validator::make($request->all(),
-	         [  
+	         [
 	         	'admin_Id'=>'required|numeric',
 	         	'type'=>'required|in:manager,supervisor,chief',
-	           
+
 	         ]);
 
 	         if($validation->fails())
@@ -91,27 +93,37 @@ class AdminController extends Controller
 
 
 	         }
+             $NewAdmin= Admin::where('user_id', $request->admin_Id)->first();
+             if($NewAdmin == null){
+                $NewAdmin= new Admin();
 
-	        $NewAdmin= new Admin();
-            $NewAdmin->AdminType=$request->type;
-            $NewAdmin->user_id=$request->admin_Id;
-            $NewAdmin->save();
+                $NewAdmin->AdminType=$request->type;
+                $NewAdmin->user_id=$request->admin_Id;
+                $NewAdmin->save();
+             }
+             else{
+                $update =  DB::table('admins')
+                ->where('user_id', $request->admin_Id)
+                ->update(['AdminType' => $request->type]);
+             }
+
+
 
 
              $this->_result->IsSuccess = true;
              $this->_result->Data = ['user'=>$NewAdmin];
              return Response::json($this->_result,200);
- 	    	
+
 
  	    }
 
- 	    public function edit_role(Request $request) 
+ 	    public function edit_role(Request $request)
  	    {
 	 	    	$validation=Validator::make($request->all(),
-	         [  
+	         [
 	         	'admin_Id'=>'required|numeric',
 	         	'type'=>'required|in:manager,supervisor,chief',
-	           
+
 	         ]);
 
 	         if($validation->fails())
@@ -123,7 +135,7 @@ class AdminController extends Controller
 
 	         }
 
-	
+
    			 $update =  DB::table('admins')
                   ->where('user_id', $request->admin_Id)
                   ->update(['AdminType' => $request->type]);
@@ -132,7 +144,7 @@ class AdminController extends Controller
               $this->_result->Data = $update;
              return Response::json($this->_result,200);
 
- 	    	
+
 
  	    }
 
@@ -157,10 +169,10 @@ class AdminController extends Controller
               $this->_result->Data = $update;
              return Response::json($this->_result,200);
 
-          }  
-          
-          public function active_admin($admin_id)
-          {
+          }
+
+    public function active_admin($admin_id)
+    {
 
             $update =  DB::table('users')
                   ->where('UserType','admin')->where('id', $admin_id)
@@ -169,6 +181,67 @@ class AdminController extends Controller
               $this->_result->IsSuccess = true;
               $this->_result->Data = $update;
              return Response::json($this->_result,200);
-          } 
+    }
+
+    public function login(Request $r)
+    {
+       $validation=Validator::make($r->all(),
+        [
+
+            'email'=>'required',
+            'password'=>'required|string',
+        ]);
+        if($validation->fails())
+        {
+          $this->_result->IsSuccess = false;
+         $this->_result->FaildReason =  $validation->errors()->first();
+         return Response::json($this->_result,200);
+
+
+        }
+
+          $user=User::where('email',$r->email)->first();
+             if($user ==null)
+             {
+                 $this->_result->IsSuccess = false;
+                 $this->_result->FaildReason = "wrong email or password";
+                 return Response::json($this->_result,200);
+
+             }
+
+             if($user->Status==false)
+             {
+                 $this->_result->IsSuccess = false;
+                 $this->_result->FaildReason = "user not active";
+                 return Response::json($this->_result,200);
+             }
+
+
+             if(Auth::attempt(['email'=>$r->email,'password'=>$r->password]))
+             {
+
+                  $form_params= [
+                     'grant_type' => 'password',
+                     'client_id' => $this->_client->id,
+                     'client_secret' => $this->_client->secret,
+                     'username' => $r->email,
+                     'password' => $r->password,
+                     'scope' => '*',
+                 ];
+                 $r->request->add($form_params);
+                 $pro= Request::create('oauth/token','POST');
+                 $a=Route::dispatch($pro);
+                 $access= json_decode((string) $a->getContent() ,true);
+                 $this->_result->IsSuccess = true;
+                 $this->_result->Data = ['access_token'=>$access['access_token'],'refresh_token'=>$access['refresh_token'],'user'=>$user];
+                 return Response::json($this->_result,200);
+             }
+             else
+             {
+                 $this->_result->IsSuccess = false;
+                 $this->_result->FaildReason = "wrong email or password";
+                 return Response::json($this->_result,200);
+             }
+         }
 }
 
