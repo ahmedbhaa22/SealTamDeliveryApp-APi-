@@ -32,6 +32,34 @@ Route::post('user/changepassword','UsersController@edit_pass')->middleware('cors
 Route::get('user/get_all_admin','UsersController@get_all_admin')->middleware('cors');
 Route::get('user/get_admin/{id}','UsersController@get_admin')->middleware('cors');
 
+//Admin Routes
+/* =================================================================*/
+
+Route::post('admin/create','AdminController@Create')->middleware('cors');
+Route::get('/unactivateAdmin/{id}','AdminController@unactive_admin')->middleware('cors');
+Route::get('/activateAdmin/{id}','AdminController@active_admin')->middleware('cors');
+Route::post('admin/addRole','AdminController@add_role')->middleware('cors');
+Route::post('admin/editRole','AdminController@edit_role')->middleware('cors');
+Route::get('admin/showRole/{id}','AdminController@get_role')->middleware('cors');
+Route::get('admin/get_all_admin','AdminController@get_all_admin')->middleware('cors');
+Route::get('admin/get_admin/{id}','AdminController@get_admin')->middleware('cors');
+
+
+//End Admin Routes
+/* =================================================================*/
+
+
+//Resturants Routes
+/* =================================================================*/
+Route::post('resturant/create','ResturantsController@Create')->middleware('cors');
+Route::post('resturant/edit/{id}','ResturantsController@Edit_Resturant')->middleware('cors');
+Route::get('admin/all_resturants','ResturantsController@get_all_resturants')->middleware('cors');
+Route::get('admin/get_resturant/{id}','ResturantsController@get_resturant')->middleware('cors');
+Route::get('/delete-resturant/{id}','ResturantsController@destroy')->middleware('cors');
+
+
+//End Resturants Routes
+/* =================================================================*/
 
 Route::get('/test', function (Request $request) {
     return Response::json('sda');
