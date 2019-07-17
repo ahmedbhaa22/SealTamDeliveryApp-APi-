@@ -15,6 +15,7 @@ use Hash;
 use Route;
 use Auth;
 use Storage;
+use DB;
 class UsersController extends Controller
 {
     private $_client;
@@ -25,12 +26,12 @@ class UsersController extends Controller
        $this->_result=new ResultVM();
     }
 
-    public function Create(Request $request)
+ public function Create(Request $request)
     {
 
          $validation=Validator::make($request->all(),
-         [ 'username'=>'required|string|unique:users,UserName',
-            'email'=>'required|string|unique:users,Email',
+         [ 'name'=>'required|string|unique:users,name',
+            'email'=>'required|string|unique:users,email',
             'password'=>'required|string|min:5',
             'type'=>'required|string',
          ]);
@@ -44,7 +45,7 @@ class UsersController extends Controller
          }
 
             $Newuser= new User();
-            $Newuser->username=$request->username;
+            $Newuser->name=$request->name;
             $Newuser->email=$request->email;
             $Newuser->UserType=$request->type;
             $Newuser->Status=true;
@@ -176,17 +177,20 @@ class UsersController extends Controller
 
 
             public function get_all_admin(){
-            $Admins= User::where('UserType','Admin')->get();
+            $Admins= User::where('UserType','admin')->get();
             $this->_result->IsSuccess = true;
             $this->_result->Data = $Admins;
             return Response::json($this->_result,200);
                     }
+
            public function get_admin($id){
-            $Admin= User::where('UserType','Admin')->where('id',$id)->first();
+            $Admin= User::where('UserType','admin')->where('id',$id)->first();
             $this->_result->IsSuccess = true;
             $this->_result->Data = $Admin;
             return Response::json($this->_result,200);
                        }
+
+         
 
 //====================================================
    public function logut_from_all_devices(Request $r)
