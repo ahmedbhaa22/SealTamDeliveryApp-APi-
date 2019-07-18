@@ -61,6 +61,18 @@ Route::get('/delete-resturant/{id}','ResturantsController@destroy')->middleware(
 //End Resturants Routes
 /* =================================================================*/
 
+//Driver Routes
+/* =================================================================*/
+Route::post('driver/create','DriverController@createDriver')->middleware('cors');
+Route::post('driver/edit/{id}','DriverController@Edit_Driver')->middleware('cors');
+Route::get('/delete-driver/{id}','DriverController@destroy')->middleware('cors');
+Route::get('admin/all_drivers','DriverController@get_all_drivers')->middleware('cors');
+Route::get('admin/get_driver/{id}','DriverController@get_driver')->middleware('cors');
+
+
+//End Resturants Routes
+/* =================================================================*/
+
 Route::get('/test', function (Request $request) {
     return Response::json('sda');
 })->middleware('cors');
