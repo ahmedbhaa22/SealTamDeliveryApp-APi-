@@ -30,8 +30,8 @@ class AdminController extends Controller
     {
 
          $validation=Validator::make($request->all(),
-         [  'name'=>'required|string|unique:users,name',
-            'email'=>'required|string|unique:users,email',
+         [  'name'=>'required|string|unique:users,username',
+            'email'=>'required|email|unique:users,email',
             'password'=>'required|string|min:5',
          ]);
          if($validation->fails())
@@ -44,7 +44,7 @@ class AdminController extends Controller
          }
 
             $NewAdmin= new User();
-            $NewAdmin->name=$request->name;
+            $NewAdmin->username=$request->name;
             $NewAdmin->email=$request->email;
             $NewAdmin->UserType='admin';
             $NewAdmin->Status=true;
@@ -153,8 +153,14 @@ class AdminController extends Controller
 			$update = DB::table('admins')->where('user_id', $admin_id)->select('AdminType')->get();
               $this->_result->IsSuccess = true;
               $this->_result->Data = $update;
-
+            if(count($update) >0 ){
              return Response::json($this->_result,200);
+            }
+            else{
+                $this->_result->IsSuccess = false;
+                $this->_result->FailedReason = 'not-found';
+                return Response::json($this->_result,200);
+            }
 		}
 
 
