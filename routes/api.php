@@ -36,13 +36,14 @@ Route::get('user/get_admin/{id}','UsersController@get_admin')->middleware('cors'
 /* =================================================================*/
 
 Route::post('admin/create','AdminController@Create')->middleware('cors');
-Route::get('/unactivateAdmin/{id}','AdminController@unactive_admin')->middleware('cors');
-Route::get('/activateAdmin/{id}','AdminController@active_admin')->middleware('cors');
+Route::get('admin/unactivateAdmin/{id}','AdminController@unactive_admin')->middleware('cors');
+Route::get('admin/activateAdmin/{id}','AdminController@active_admin')->middleware('cors');
 Route::post('admin/addRole','AdminController@add_role')->middleware('cors');
 Route::post('admin/editRole','AdminController@edit_role')->middleware('cors');
 Route::get('admin/showRole/{id}','AdminController@get_role')->middleware('cors');
 Route::get('admin/get_all_admin','AdminController@get_all_admin')->middleware('cors');
 Route::get('admin/get_admin/{id}','AdminController@get_admin')->middleware('cors');
+Route::post('admin/login','AdminController@login')->middleware('cors');
 
 
 //End Admin Routes
