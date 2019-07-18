@@ -54,9 +54,9 @@ Route::post('admin/login','AdminController@login')->middleware('cors');
 /* =================================================================*/
 Route::post('resturant/create','ResturantsController@Create')->middleware('cors');
 Route::post('resturant/edit/{id}','ResturantsController@Edit_Resturant')->middleware('cors');
-Route::get('admin/all_resturants','ResturantsController@get_all_resturants')->middleware('cors');
-Route::get('admin/get_resturant/{id}','ResturantsController@get_resturant')->middleware('cors');
-Route::get('/delete-resturant/{id}','ResturantsController@destroy')->middleware('cors');
+Route::get('resturant/all_resturants','ResturantsController@get_all_resturants')->middleware('cors');
+Route::get('resturant/get_resturant/{id}','ResturantsController@get_resturant')->middleware('cors');
+Route::get('resturant/delete-resturant/{id}','ResturantsController@destroy')->middleware('cors');
 
 
 //End Resturants Routes
