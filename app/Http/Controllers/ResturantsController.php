@@ -28,7 +28,7 @@ class ResturantsController extends Controller
     {
 
          $validation=Validator::make($request->all(),
-         [  'name'			=>'required|string|unique:users,name',
+         [  'name'			=>'required|string',
             'email'			=>'required|string|unique:users,email',
             'password'		=>'required|string|min:5',
             'lng'           =>'sometimes|nullable',
@@ -46,7 +46,7 @@ class ResturantsController extends Controller
          }
 
             $NewResturant= new User();
-            $NewResturant->name=$request->name;
+            $NewResturant->username=$request->name;
             $NewResturant->email=$request->email;
             $NewResturant->UserType='resturant';
             $NewResturant->Status=true;
@@ -76,12 +76,12 @@ class ResturantsController extends Controller
     {
 
          $validation=Validator::make($request->all(),
-         [  'name'			=>'required|string|unique:users,name',
+         [  'name'			=>'required|string',
             'status'        =>'required|numeric',
             'lng'           =>'sometimes|nullable',
             'lat'           =>'sometimes|nullable',
             'location'      =>'sometimes|nullable',
-           // 'telephone'     =>'sometimes|numeric|min:5',
+            'telephone'     =>'sometimes|numeric|min:5',
          ]);
          if($validation->fails())
          {
@@ -92,13 +92,13 @@ class ResturantsController extends Controller
 
          }
 
-       $NewResturant=   User::where('id', $id)->update(['name'=>$request->name,'Status'=>$request->status]);
+       $NewResturant=   User::where('id', $id)->update(['username'=>$request->name,'Status'=>$request->status]);
 
        $ResturantInfo =    Resturant::where('user_id', $id)->update([
             	'lng'=>$request->lng,
             	'lat'=>$request->lat,
-            	'location'=>$request->location
-            //	'telephone'=>$request->telephone,
+            	'location'=>$request->location,
+            	'telephone'=>$request->telephone,
             ]);
 
 
@@ -132,8 +132,8 @@ class ResturantsController extends Controller
            {
            	$resturant = DB::table('users')
         		->join('resturants','users.id', '=', 'resturants.user_id')
-        		->where('users.UserType','resturant')->where('users.id',$id)
-                ->get();
+        		->where('users.UserType','resturant')->where('resturants.id',$id)
+                ->first();
 
 	            $this->_result->IsSuccess = true;
 	            $this->_result->Data = $resturant;
@@ -148,7 +148,7 @@ class ResturantsController extends Controller
 		        $this->_result->IsSuccess = true;
 	            $this->_result->Data = $resturant;
 	            return Response::json($this->_result,200);
-		       
+
 		    }
 
 
