@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Laravel\Passport\Client;
 use GuzzleHttp\Exception\GuzzleException;

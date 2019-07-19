@@ -85,6 +85,15 @@ Route::post('admin/add','AddController@save_add')->middleware('cors');;
 //End Adds Routes
 /* =================================================================*/
 
+//Start Home Routes
+/* =================================================================*/
+
+Route::get('admin/home','HomeController@get_items_count')->middleware('cors');
+Route::get('admin/home/all_resturants','HomeController@get_all_resturants')->middleware('cors');;
+
+//End Home Routes
+/* =================================================================*/
+
 
 
 Route::get('/test', function (Request $request) {
