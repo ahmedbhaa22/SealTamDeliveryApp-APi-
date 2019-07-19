@@ -74,6 +74,28 @@ Route::get('driver/get_driver/{id}','DriverController@get_driver')->middleware('
 //End Resturants Routes
 /* =================================================================*/
 
+
+
+//Start Adds Routes
+/* =================================================================*/
+
+Route::get('admin/add','AddController@get_add')->middleware('cors');
+Route::post('admin/add','AddController@save_add')->middleware('cors');;
+
+//End Adds Routes
+/* =================================================================*/
+
+//Start Home Routes
+/* =================================================================*/
+
+Route::get('admin/home','HomeController@get_items_count')->middleware('cors');
+Route::get('admin/home/all_resturants','HomeController@get_all_resturants')->middleware('cors');;
+
+//End Home Routes
+/* =================================================================*/
+
+
+
 Route::get('/test', function (Request $request) {
     return Response::json('sda');
 })->middleware('cors');
