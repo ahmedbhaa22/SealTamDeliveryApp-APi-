@@ -33,17 +33,18 @@ class DriverController extends Controller
 
     public function createDriver(Request $request)
     {
-    
+
 
 
       $validation=Validator::make($request->all(),
-         [  'name'=>'required|string|unique:users,name',
+         [
+             'name'=>'required|string',
             'email'=>'required|string|unique:users,email',
             'password'=>'required|string|min:5',
-            'telephone'     =>'sometimes|numeric|min:5',
-            'image' => 'image|sometimes|nullable',
-            'frId' => 'image|sometimes|nullable',
-            'backId' => 'image|sometimes|nullable',
+            'telephone'     =>'required|numeric|min:5',
+            'image' => 'image|required',
+            'frId' => 'image|required',
+            'backId' => 'image|required',
          ]);
 
        if($validation->fails())
@@ -87,10 +88,10 @@ class DriverController extends Controller
         }
 
 
-        
+
 
             $NewDriver= new User();
-            $NewDriver->name=$request->name;
+            $NewDriver->username=$request->name;
             $NewDriver->email=$request->email;
             $NewDriver->UserType='driver';
             $NewDriver->Status=true;
@@ -180,7 +181,7 @@ class DriverController extends Controller
        $NewDriver=   User::where('id', $id)->update(['name'=>$request->name,'Status'=>$request->status]);
 
        $DriverInfo =    Driver::where('user_id', $id)->update([
-                
+
                'telephone'=>$request->telephone,
                'image' =>  Config::get('r_image'),
                 'frontId' => Config::get('r_frontId'),
@@ -239,7 +240,7 @@ class DriverController extends Controller
                 $this->_result->IsSuccess = true;
                 $this->_result->Data = $resturant;
                 return Response::json($this->_result,200);
-               
+
             }
 
 

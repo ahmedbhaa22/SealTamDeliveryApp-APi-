@@ -66,9 +66,9 @@ Route::get('resturant/delete-resturant/{id}','ResturantsController@destroy')->mi
 /* =================================================================*/
 Route::post('driver/create','DriverController@createDriver')->middleware('cors');
 Route::post('driver/edit/{id}','DriverController@Edit_Driver')->middleware('cors');
-Route::get('/delete-driver/{id}','DriverController@destroy')->middleware('cors');
-Route::get('admin/all_drivers','DriverController@get_all_drivers')->middleware('cors');
-Route::get('admin/get_driver/{id}','DriverController@get_driver')->middleware('cors');
+Route::get('driver/delete-driver/{id}','DriverController@destroy')->middleware('cors');
+Route::get('driver/all_drivers','DriverController@get_all_drivers')->middleware('cors');
+Route::get('driver/get_driver/{id}','DriverController@get_driver')->middleware('cors');
 
 
 //End Resturants Routes
