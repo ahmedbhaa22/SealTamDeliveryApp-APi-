@@ -74,6 +74,19 @@ Route::get('admin/get_driver/{id}','DriverController@get_driver')->middleware('c
 //End Resturants Routes
 /* =================================================================*/
 
+
+
+//Start Adds Routes
+/* =================================================================*/
+
+Route::get('admin/add','AddController@get_add')->middleware('cors');
+Route::post('admin/add','AddController@save_add')->middleware('cors');;
+
+//End Adds Routes
+/* =================================================================*/
+
+
+
 Route::get('/test', function (Request $request) {
     return Response::json('sda');
 })->middleware('cors');
