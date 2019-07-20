@@ -17,6 +17,8 @@ use Config;
 use DB;
 use App\User;
 use App\Driver;
+use Auth;
+use Route;
 use App\Http\ViewModel\ResultVM;
 
 
@@ -39,7 +41,7 @@ class DriverController extends Controller
 
       $validation=Validator::make($request->all(),
          [
-             'name'=>'required|string',
+            'name'=>'required|string',
             'email'=>'required|string|unique:users,email',
             'password'=>'required|string|min:5',
             'telephone'     =>'required|numeric|min:5',
@@ -239,6 +241,185 @@ class DriverController extends Controller
                 return Response::json($this->_result,200);
 
             }
+
+
+
+ public function login(Request $r)
+    {
+       $validation=Validator::make($r->all(),
+        [
+
+            'email'=>'required',
+            'password'=>'required|string',
+        ]);
+        if($validation->fails())
+        {
+          $this->_result->IsSuccess = false;
+         $this->_result->FaildReason =  $validation->errors()->first();
+         return Response::json($this->_result,200);
+
+
+        }
+
+          $user=User::where('email',$r->email)->join('drivers','users.id', '=', 'drivers.user_id')->first();
+
+         
+
+
+             if($user ==null)
+             {
+                 $this->_result->IsSuccess = false;
+                 $this->_result->FaildReason = "wrong email or password";
+                 return Response::json($this->_result,200);
+
+             }
+
+             if($user->Status==false)
+             {
+                 $this->_result->IsSuccess = false;
+                 $this->_result->FaildReason = "user not active";
+                 return Response::json($this->_result,200);
+             }
+
+
+             if(Auth::attempt(['email'=>$r->email,'password'=>$r->password]))
+             {
+
+                  $form_params= [
+                     'grant_type' => 'password',
+                     'client_id' => $this->_client->id,
+                     'client_secret' => $this->_client->secret,
+                     'username' => $r->email,
+                     'password' => $r->password,
+                     'scope' => '*',
+                 ];
+                 $r->request->add($form_params);
+                 $pro= Request::create('oauth/token','POST');
+                 $a=Route::dispatch($pro);
+                 $access= json_decode((string) $a->getContent() ,true);
+
+                 if($user->UserType != 'driver'){
+                     $this->_result->IsSuccess = false;
+                     $this->_result->FaildReason = "No Driver Found";
+                     return Response::json($this->_result,200);
+
+                 } else {
+                 $this->_result->IsSuccess = true;
+                 $this->_result->Data = ['access_token'=>$access['access_token'],'refresh_token'=>$access['refresh_token'],'user'=>$user];
+                 return Response::json($this->_result,200);
+                 }
+             }
+             else
+             {
+                 $this->_result->IsSuccess = false;
+                 $this->_result->FaildReason = "wrong email or password";
+                 return Response::json($this->_result,200);
+             }
+         } // end login
+
+
+
+     public function make_online($id)
+        {
+
+             $update =  DB::table('drivers')
+                  ->where('user_id', $id)
+                  ->update(['availability' => 'on']);
+
+              $this->_result->IsSuccess = true;
+              $this->_result->Data = $update;
+             return Response::json($this->_result,200);
+
+          }// end make_online
+
+    public function make_offline($id)
+        {
+
+             $update =  DB::table('drivers')
+                  ->where('user_id', $id)
+                  ->update(['availability' => 'off']);
+
+              $this->_result->IsSuccess = true;
+              $this->_result->Data = $update;
+             return Response::json($this->_result,200);
+
+          }// end make_offline
+
+     public function make_ontrip($id)
+        {
+
+             $update =  DB::table('drivers')
+                  ->where('user_id', $id)
+                  ->update(['availability' => 'ontrip']);
+
+              $this->_result->IsSuccess = true;
+              $this->_result->Data = $update;
+             return Response::json($this->_result,200);
+
+          }// end make_ontrip
+
+
+       public function add_location (Request $request)
+         {
+
+         $validation=Validator::make($request->all(),
+             [
+                'driver_id'     =>'required|numeric',
+                'lng'           =>'required|string',
+                'lat'           =>'required|string',
+
+             ]);
+
+             if($validation->fails())
+             {
+                $this->_result->IsSuccess = false;
+                $this->_result->FaildReason =  $validation->errors()->first();
+                return Response::json($this->_result,200);
+
+
+             }
+
+
+             $update =  DB::table('drivers')
+                  ->where('user_id', $request->driver_id)
+                  ->update(['lat' => $request->lat,'lng' => $request->lng]);
+
+              $this->_result->IsSuccess = true;
+              $this->_result->Data = $update;
+             return Response::json($this->_result,200);
+
+         }// end addLocation
+
+
+          public function add_deviceToken (Request $request)
+         {
+
+         $validation=Validator::make($request->all(),
+             [
+                'driver_id'     =>'required|numeric',
+                'deviceToken'   =>'required|string',
+
+             ]);
+
+             if($validation->fails())
+             {
+                $this->_result->IsSuccess = false;
+                $this->_result->FaildReason =  $validation->errors()->first();
+                return Response::json($this->_result,200);
+
+
+             }
+
+
+             $update =  DB::table('drivers')
+                  ->where('user_id', $request->driver_id)
+                  ->update(['deviceToken' => $request->deviceToken]);
+
+              $this->_result->IsSuccess = true;
+              $this->_result->Data = $update;
+             return Response::json($this->_result,200);
+
+         }// end add_deviceToken
 
 
 

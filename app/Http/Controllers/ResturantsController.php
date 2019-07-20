@@ -11,6 +11,8 @@ use Response;
 use DB;
 use Validator;
 use Hash;
+use Auth;
+use Route;
 use App\User;
 use App\Resturant;
 use App\Http\ViewModel\ResultVM;
@@ -151,6 +153,79 @@ class ResturantsController extends Controller
 	            return Response::json($this->_result,200);
 
 		    }
+
+ public function login(Request $r)
+    {
+       $validation=Validator::make($r->all(),
+        [
+
+            'email'=>'required',
+            'password'=>'required|string',
+        ]);
+        if($validation->fails())
+        {
+          $this->_result->IsSuccess = false;
+         $this->_result->FaildReason =  $validation->errors()->first();
+         return Response::json($this->_result,200);
+
+
+        }
+
+          $user=User::where('email',$r->email)->join('resturants','users.id', '=', 'resturants.user_id')->first();
+
+         
+
+
+             if($user ==null)
+             {
+                 $this->_result->IsSuccess = false;
+                 $this->_result->FaildReason = "wrong email or password";
+                 return Response::json($this->_result,200);
+
+             }
+
+             if($user->Status==false)
+             {
+                 $this->_result->IsSuccess = false;
+                 $this->_result->FaildReason = "user not active";
+                 return Response::json($this->_result,200);
+             }
+
+
+             if(Auth::attempt(['email'=>$r->email,'password'=>$r->password]))
+             {
+
+                  $form_params= [
+                     'grant_type' => 'password',
+                     'client_id' => $this->_client->id,
+                     'client_secret' => $this->_client->secret,
+                     'username' => $r->email,
+                     'password' => $r->password,
+                     'scope' => '*',
+                 ];
+                 $r->request->add($form_params);
+                 $pro= Request::create('oauth/token','POST');
+                 $a=Route::dispatch($pro);
+                 $access= json_decode((string) $a->getContent() ,true);
+
+                 if($user->UserType != 'resturant'){
+                     $this->_result->IsSuccess = false;
+                     $this->_result->FaildReason = "No resturant Found";
+                     return Response::json($this->_result,200);
+
+                 } else {
+                 $this->_result->IsSuccess = true;
+                 $this->_result->Data = ['access_token'=>$access['access_token'],'refresh_token'=>$access['refresh_token'],'user'=>$user];
+                 return Response::json($this->_result,200);
+                 }
+             }
+             else
+             {
+                 $this->_result->IsSuccess = false;
+                 $this->_result->FaildReason = "wrong email or password";
+                 return Response::json($this->_result,200);
+             }
+         }
 
 
 }
