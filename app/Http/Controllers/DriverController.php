@@ -92,7 +92,7 @@ class DriverController extends Controller
 
 
             $NewDriver= new User();
-            $NewDriver->username=$request->name;
+            $NewDriver->name=$request->name;
             $NewDriver->email=$request->email;
             $NewDriver->UserType='driver';
             $NewDriver->Status=true;
@@ -123,12 +123,10 @@ class DriverController extends Controller
     {
 
          $validation=Validator::make($request->all(),
-         [  'name'          =>'required|string|unique:users,name',
+         [  'name'          =>'required|string',
             'status'        =>'required|numeric',
             'telephone'     =>'sometimes|numeric|min:5',
-            'image' => 'image|sometimes|nullable',
-            'frId' => 'image|sometimes|nullable',
-            'backId' => 'image|sometimes|nullable',
+            'canReceiveOrder'        =>'required|numeric',
          ]);
 
          if($validation->fails())
@@ -184,12 +182,10 @@ class DriverController extends Controller
        $DriverInfo =    Driver::where('user_id', $id)->update([
 
                'telephone'=>$request->telephone,
-               'image' =>  Config::get('r_image'),
-                'frontId' => Config::get('r_frontId'),
-                'backId' =>Config::get('r_backId')
+               "canReceiveOrder"=>$request->canReceiveOrder,
+
 
             ]);
-
 
              $this->_result->IsSuccess = true;
              $this->_result->Data = ['driver'=>$NewDriver, 'info'=>$DriverInfo];
@@ -218,7 +214,7 @@ class DriverController extends Controller
            {
             $resturant = DB::table('users')
                 ->join('drivers','users.id', '=', 'drivers.user_id')
-                ->where('users.UserType','driver')->where('users.id',$id)
+                ->where('users.UserType','driver')->where('drivers.id',$id)
                 ->get();
 
                 $this->_result->IsSuccess = true;

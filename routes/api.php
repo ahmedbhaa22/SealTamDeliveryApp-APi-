@@ -35,15 +35,16 @@ Route::get('user/get_admin/{id}','UsersController@get_admin')->middleware('cors'
 //Admin Routes
 /* =================================================================*/
 
-Route::post('admin/create','AdminController@Create')->middleware('cors');
-Route::get('admin/unactivateAdmin/{id}','AdminController@unactive_admin')->middleware('cors');
-Route::get('admin/activateAdmin/{id}','AdminController@active_admin')->middleware('cors');
-Route::post('admin/addRole','AdminController@add_role')->middleware('cors');
-Route::post('admin/editRole','AdminController@edit_role')->middleware('cors');
-Route::get('admin/showRole/{id}','AdminController@get_role')->middleware('cors');
-Route::get('admin/get_all_admin','AdminController@get_all_admin')->middleware('cors');
-Route::get('admin/get_admin/{id}','AdminController@get_admin')->middleware('cors');
+Route::post('admin/create','AdminController@Create')->middleware('cors','auth:api');
+Route::get('admin/unactivateAdmin/{id}','AdminController@unactive_admin')->middleware('cors','auth:api');
+Route::get('admin/activateAdmin/{id}','AdminController@active_admin')->middleware('cors','auth:api');
+Route::post('admin/addRole','AdminController@add_role')->middleware('cors','auth:api');
+Route::post('admin/editRole','AdminController@edit_role')->middleware('cors','auth:api');
+Route::get('admin/showRole/{id}','AdminController@get_role')->middleware('cors','auth:api');
+Route::get('admin/get_all_admin','AdminController@get_all_admin')->middleware('cors','auth:api');
+Route::get('admin/get_admin/{id}','AdminController@get_admin')->middleware('cors','auth:api');
 Route::post('admin/login','AdminController@login')->middleware('cors');
+Route::post('admin/changepassword','UsersController@edit_pass')->middleware('cors','auth:api');
 
 
 //End Admin Routes
@@ -52,11 +53,11 @@ Route::post('admin/login','AdminController@login')->middleware('cors');
 
 //Resturants Routes
 /* =================================================================*/
-Route::post('resturant/create','ResturantsController@Create')->middleware('cors');
-Route::post('resturant/edit/{id}','ResturantsController@Edit_Resturant')->middleware('cors');
-Route::get('resturant/all_resturants','ResturantsController@get_all_resturants')->middleware('cors');
-Route::get('resturant/get_resturant/{id}','ResturantsController@get_resturant')->middleware('cors');
-Route::get('resturant/delete-resturant/{id}','ResturantsController@destroy')->middleware('cors');
+Route::post('resturant/create','ResturantsController@Create')->middleware('cors','auth:api');
+Route::post('resturant/edit/{id}','ResturantsController@Edit_Resturant')->middleware('cors','auth:api');
+Route::get('resturant/all_resturants','ResturantsController@get_all_resturants')->middleware('cors','auth:api');
+Route::get('resturant/get_resturant/{id}','ResturantsController@get_resturant')->middleware('cors','auth:api');
+Route::get('resturant/delete-resturant/{id}','ResturantsController@destroy')->middleware('cors','auth:api');
 
 
 //End Resturants Routes
@@ -64,11 +65,11 @@ Route::get('resturant/delete-resturant/{id}','ResturantsController@destroy')->mi
 
 //Driver Routes
 /* =================================================================*/
-Route::post('driver/create','DriverController@createDriver')->middleware('cors');
-Route::post('driver/edit/{id}','DriverController@Edit_Driver')->middleware('cors');
-Route::get('driver/delete-driver/{id}','DriverController@destroy')->middleware('cors');
-Route::get('driver/all_drivers','DriverController@get_all_drivers')->middleware('cors');
-Route::get('driver/get_driver/{id}','DriverController@get_driver')->middleware('cors');
+Route::post('driver/create','DriverController@createDriver')->middleware('cors','auth:api');
+Route::post('driver/edit/{id}','DriverController@Edit_Driver')->middleware('cors','auth:api');
+Route::get('driver/delete-driver/{id}','DriverController@destroy')->middleware('cors','auth:api');
+Route::get('driver/all_drivers','DriverController@get_all_drivers')->middleware('cors','auth:api');
+Route::get('driver/get_driver/{id}','DriverController@get_driver')->middleware('cors','auth:api');
 
 
 //End Resturants Routes
@@ -79,8 +80,8 @@ Route::get('driver/get_driver/{id}','DriverController@get_driver')->middleware('
 //Start Adds Routes
 /* =================================================================*/
 
-Route::get('admin/add','AddController@get_add')->middleware('cors');
-Route::post('admin/add','AddController@save_add')->middleware('cors');;
+Route::get('add/get','AddController@get_add')->middleware('cors','auth:api');
+Route::post('add/edit','AddController@save_add')->middleware('cors','auth:api');;
 
 //End Adds Routes
 /* =================================================================*/
@@ -88,8 +89,8 @@ Route::post('admin/add','AddController@save_add')->middleware('cors');;
 //Start Home Routes
 /* =================================================================*/
 
-Route::get('admin/home','HomeController@get_items_count')->middleware('cors');
-Route::get('admin/home/all_resturants','HomeController@get_all_resturants')->middleware('cors');;
+Route::get('home/home','HomeController@get_items_count')->middleware('cors','auth:api');
+Route::get('home/all_resturants','HomeController@get_all_resturants')->middleware('cors','auth:api');;
 
 //End Home Routes
 /* =================================================================*/

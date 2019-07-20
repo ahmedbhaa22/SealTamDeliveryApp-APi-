@@ -14,3 +14,20 @@ class DatabaseSeeder extends Seeder
         $this->call(AddSeeder::class);
     }
 }
+
+class AddSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        $user = \App\Add::create([
+            'name' => 'First Add',
+            'status' =>'0',
+            'image' => 'default.jpg',
+        ]);
+    }
+}

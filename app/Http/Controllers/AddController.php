@@ -29,23 +29,22 @@ class AddController extends Controller
 
     public function get_add()
     {
-    		
-		$add = Add::orderBy('id','desc')->first();
 
-		if($add) {
+		   $add = Add::orderBy('id','desc')->first();
 
-		    $this->_result->IsSuccess = true;
+
+	        $this->_result->IsSuccess = true;
              $this->_result->Data = ['add'=>$add];
              return Response::json($this->_result,200);
-         }
-	
+
+
     }
 
      public function save_add(Add $add , Request $request)
     {
     	 $validation=Validator::make($request->all(),
          [  'name'=>'required|string',
-            'image' => 'required|image',
+            'image' => 'image',
             'status'=>'required|numeric|in:0,1',
          ]);
          if($validation->fails())
@@ -68,13 +67,17 @@ class AddController extends Controller
 
                   $k_image = $file->hashName();
                   Config::set('k_image', $k_image);
-
-            }//end of inner if
-
+                  $newAdd = 	Add::orderBy('id', 'desc')->update(['name'=>$request->name,'status'=>$request->status,'image'=>Config::get('k_image')]);
 
 
+            }
+            else{
+                $newAdd = 	Add::orderBy('id', 'desc')->update(['name'=>$request->name,'status'=>$request->status]);
 
-   	 $newAdd = 	Add::orderBy('id', 'desc')->update(['name'=>$request->name,'status'=>$request->status,'image'=>Config::get('k_image')]);
+            }
+
+
+
 
    			 $this->_result->IsSuccess = true;
              $this->_result->Data = ['add'=>$newAdd];

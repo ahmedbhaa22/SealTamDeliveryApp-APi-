@@ -27,9 +27,9 @@ class HomeController extends Controller
 	public function get_items_count()
 	 {
 
-	 	 $admins = DB::table('users')->where('UserType','admin')->count();     
-	 	 $drivers = DB::table('users')->where('UserType','driver')->count();     
-	 	 $resturants = DB::table('users')->where('UserType','resturant')->count(); 
+	 	 $admins = DB::table('users')->where('UserType','admin')->count();
+	 	 $drivers = DB::table('users')->where('UserType','driver')->count();
+	 	 $resturants = DB::table('users')->where('UserType','resturant')->count();
 
  		 $this->_result->IsSuccess = true;
          $this->_result->Data = ['admins'=>$admins, 'drivers'=>$drivers,'resturants'=>$resturants];

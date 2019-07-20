@@ -47,7 +47,7 @@ class ResturantsController extends Controller
          }
 
             $NewResturant= new User();
-            $NewResturant->username=$request->name;
+            $NewResturant->name=$request->name;
             $NewResturant->email=$request->email;
             $NewResturant->UserType='resturant';
             $NewResturant->Status=true;
@@ -93,7 +93,7 @@ class ResturantsController extends Controller
 
          }
 
-       $NewResturant=   User::where('id', $id)->update(['username'=>$request->name,'Status'=>$request->status]);
+       $NewResturant=   User::where('id', $id)->update(['name'=>$request->name,'Status'=>$request->status]);
 
        $ResturantInfo =    Resturant::where('user_id', $id)->update([
             	'lng'=>$request->lng,
