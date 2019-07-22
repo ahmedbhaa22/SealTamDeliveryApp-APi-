@@ -44,7 +44,7 @@ Route::get('admin/showRole/{id}','AdminController@get_role')->middleware('cors',
 Route::get('admin/get_all_admin','AdminController@get_all_admin')->middleware('cors','auth:api');
 Route::get('admin/get_admin/{id}','AdminController@get_admin')->middleware('cors','auth:api');
 Route::post('admin/login','AdminController@login')->middleware('cors');
-Route::post('admin/changepassword','UsersController@edit_pass')->middleware('cors','auth:api');
+Route::post('admin/changepassword','UsersController@edit_pass')->middleware('cors');
 
 
 //End Admin Routes

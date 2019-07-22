@@ -125,7 +125,7 @@ class UsersController extends Controller
        [
            'oldpassword'=> 'required|string',
            'password'=> 'required|string|min:5',
-           'email'=>'required|exists:Users,email'
+           'email'=>'required|exists:users,email'
        ]);
        if($validation->fails())
         {
@@ -133,8 +133,12 @@ class UsersController extends Controller
             $this->_result->FaildReason =  $validation->errors()->first();
             return Response::json($this->_result,200);
         }
+        $newPassword = $request->password;
        if(Auth::attempt(['email'=>$request->email,'password'=>$request->oldpassword]))
+
                {
+                $user=User::where('email',$request->email)->first();
+
                 $form_params= [
                     'grant_type' => 'password',
                     'client_id' => $this->_client->id,
@@ -148,14 +152,13 @@ class UsersController extends Controller
                 $pro= Request::create('oauth/token','POST');
                 $a=Route::dispatch($pro);
 
-                $access= json_decode((string) $a->getContent() ,true);
-                $refresh_token=$access['refresh_token'];
-                                   $edit_pass = Auth::user();
-                   $edit_pass->password=bcrypt($request->password);
+                    $access= json_decode((string) $a->getContent() ,true);
+                    $refresh_token=$access['refresh_token'];
                    $request->merge(['refresh_token' => $refresh_token]);
                    if($this->logut_from_all_devices($request))
                    {
-                       $edit_pass->save();
+                       $user->password = Hash::make($newPassword);
+                       $user->save();
                        $this->_result->IsSuccess = true;
                        return Response::json($this->_result,200);
 
@@ -190,7 +193,7 @@ class UsersController extends Controller
             return Response::json($this->_result,200);
                        }
 
-         
+
 
 //====================================================
    public function logut_from_all_devices(Request $r)

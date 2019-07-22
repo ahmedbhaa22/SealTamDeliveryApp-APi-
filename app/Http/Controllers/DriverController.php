@@ -64,18 +64,18 @@ class DriverController extends Controller
         if ($request->frId) {
 
                 $file = request()->file('frId');
-                $file->store('FrontID', ['disk' => 'public_uploads']);
+                $frontId =  $file->store('FrontID');
 
-                $frontId = $file->hashName();
+
 
 
         }
         if ($request->image) {
 
                         $file2 = request()->file('image');
-                        $file2->store('driver_images', ['disk' => 'public_uploads']);
+                        $image = $file2->store('driver_images');
 
-                        $image = $file2->hashName();
+
 
 
                 }
@@ -83,9 +83,9 @@ class DriverController extends Controller
         if ($request->backId) {
 
                 $file3 = request()->file('backId');
-                $file3->store('backDriverId', ['disk' => 'public_uploads']);
+                $backId = $file3->store('backDriverId');
 
-                $backId = $file3->hashName();
+
 
 
         }
@@ -136,59 +136,39 @@ class DriverController extends Controller
             $this->_result->IsSuccess = false;
             $this->_result->FaildReason =  $validation->errors()->first();
             return Response::json($this->_result,200);
-
-
          }
 
+         $newDriverData  =[
+            'telephone'=>$request->telephone,
+            "canReceiveOrder"=>$request->canReceiveOrder,
+         ];
          if ($request->image) {
-
-                 Storage::disk('public_uploads')->delete('/driver_images/' . $driver->first()->image);
-
+                  Storage::delete($driver->first()->image);
                   $file2 = request()->file('image');
-                  $file2->store('driver_images', ['disk' => 'public_uploads']);
-
-                  $r_image = $file2->hashName();
+                  $r_image =  $file2->store('driver_images');
                   Config::set('r_image', $r_image);
-
-            }//end of inner if
+                  $newDriverData['image'] =   $r_image ;
+            }
 
         if ($request->frId) {
 
-                Storage::disk('public_uploads')->delete('/FrontID/' . $driver->first()->frontId);
-
+                Storage::delete($driver->first()->frontId);
                 $file = request()->file('frId');
-                $file->store('FrontID', ['disk' => 'public_uploads']);
-
-                $r_frontId = $file->hashName();
+                $r_frontId =  $file->store('FrontID');
                  Config::set('r_frontId', $r_frontId);
-
+                 $newDriverData['frontId'] =   $r_frontId ;
             }//end of inner if
 
         if ($request->backId) {
-
-                Storage::disk('public_uploads')->delete('/backDriverId/' . $driver->first()->backId);
-
+                Storage::delete($driver->first()->backId);
                 $file3 = request()->file('backId');
-                $file3->store('backDriverId', ['disk' => 'public_uploads']);
-
-                $r_backId = $file3->hashName();
-                Config::set('r_backId', $r_backId);
-
+                $r_backId =  $file3->store('backDriverId');
+                 Config::set('r_backId', $r_backId);
+                 $newDriverData['backId'] =   $r_backId ;
             }//end of inner if
 
-
-
-
-       $NewDriver=   User::where('id', $id)->update(['name'=>$request->name,'Status'=>$request->status]);
-
-       $DriverInfo =    Driver::where('user_id', $id)->update([
-
-               'telephone'=>$request->telephone,
-               "canReceiveOrder"=>$request->canReceiveOrder,
-
-
-            ]);
-
+            $NewDriver=  User::where('id', $id)->update(['name'=>$request->name,'Status'=>$request->status]);
+            $DriverInfo =    Driver::where('user_id', $id)->update($newDriverData);
              $this->_result->IsSuccess = true;
              $this->_result->Data = ['driver'=>$NewDriver, 'info'=>$DriverInfo];
              return Response::json($this->_result,200);
@@ -263,7 +243,7 @@ class DriverController extends Controller
 
           $user=User::where('email',$r->email)->join('drivers','users.id', '=', 'drivers.user_id')->first();
 
-         
+
 
 
              if($user ==null)
@@ -300,7 +280,7 @@ class DriverController extends Controller
 
                  if($user->UserType != 'driver'){
                      $this->_result->IsSuccess = false;
-                     $this->_result->FaildReason = "No Driver Found";
+                     $this->_result->FaildReason = "wrong email or password";
                      return Response::json($this->_result,200);
 
                  } else {

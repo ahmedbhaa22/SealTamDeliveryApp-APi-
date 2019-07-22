@@ -59,15 +59,15 @@ class AddController extends Controller
 
           if ($request->image) {
           	 if ($add->first()->image != 'default.jpg') {
-                 Storage::disk('public_uploads')->delete('/adds/' . $add->first()->image);
+                 Storage::delete($add->first()->image);
                 }
 
                   $file = request()->file('image');
-                  $file->store('adds', ['disk' => 'public_uploads']);
+                  $k_image = $file->store('adds');
 
-                  $k_image = $file->hashName();
+
                   Config::set('k_image', $k_image);
-                  $newAdd = 	Add::orderBy('id', 'desc')->update(['name'=>$request->name,'status'=>$request->status,'image'=>Config::get('k_image')]);
+                  $newAdd = 	Add::orderBy('id', 'desc')->update(['name'=>$request->name,'status'=>$request->status,'image'=>$k_image]);
 
 
             }

@@ -173,7 +173,7 @@ class ResturantsController extends Controller
 
           $user=User::where('email',$r->email)->join('resturants','users.id', '=', 'resturants.user_id')->first();
 
-         
+
 
 
              if($user ==null)
@@ -210,7 +210,7 @@ class ResturantsController extends Controller
 
                  if($user->UserType != 'resturant'){
                      $this->_result->IsSuccess = false;
-                     $this->_result->FaildReason = "No resturant Found";
+                     $this->_result->FaildReason = "wrong email or password";
                      return Response::json($this->_result,200);
 
                  } else {
