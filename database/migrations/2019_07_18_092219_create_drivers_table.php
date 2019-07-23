@@ -20,6 +20,9 @@ class CreateDriversTable extends Migration
             $table->string('frontId')->nullable();
             $table->string('backId')->nullable();
             $table->string('telephone');
+
+            $table->unsignedBigInteger('identity')->unique()->nullable();
+            
             $table->string('lat')->nullable();
             $table->string('lng')->nullable();
             $table->enum('canReceiveOrder',['0', '1'])->default(1);

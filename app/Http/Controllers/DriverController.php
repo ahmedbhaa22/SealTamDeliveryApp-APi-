@@ -45,6 +45,7 @@ class DriverController extends Controller
             'email'=>'required|string|unique:users,email',
             'password'=>'required|string|min:5',
             'telephone'     =>'required|numeric|min:5',
+            'identity'     =>'required|numeric|min:14',
             'image' => 'image|required',
             'frId' => 'image|required',
             'backId' => 'image|required',
@@ -105,6 +106,7 @@ class DriverController extends Controller
             $DriverInfo = new Driver();
             $DriverInfo->user_id   = $NewDriver->id;
             $DriverInfo->telephone = $request->telephone;
+            $DriverInfo->identity = $request->identity;
             $DriverInfo->image     = $image ;
             $DriverInfo->backId    = $backId;
             $DriverInfo->frontId    = $frontId;
@@ -128,6 +130,7 @@ class DriverController extends Controller
          [  'name'          =>'required|string',
             'status'        =>'required|numeric',
             'telephone'     =>'sometimes|numeric|min:5',
+            'identity'     =>'required|numeric|min:14',
             'canReceiveOrder'        =>'required|numeric',
          ]);
 
@@ -140,8 +143,10 @@ class DriverController extends Controller
 
          $newDriverData  =[
             'telephone'=>$request->telephone,
-            "canReceiveOrder"=>$request->canReceiveOrder,
+            'identity'=>$request->identity,
+            'canReceiveOrder'=>$request->canReceiveOrder,
          ];
+
          if ($request->image) {
                   Storage::delete($driver->first()->image);
                   $file2 = request()->file('image');

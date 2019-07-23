@@ -74,11 +74,11 @@ Route::get('driver/all_drivers','DriverController@get_all_drivers')->middleware(
 Route::get('driver/get_driver/{id}','DriverController@get_driver')->middleware('cors','auth:api');
 /*Drivers api routes*/
 Route::post('driver/login','DriverController@login');
-Route::post('driver/addLocation','DriverController@add_location')->middleware('auth:api');
-Route::post('driver/addDeviceToken','DriverController@add_deviceToken')->middleware('auth:api');
-Route::get('driver/MakeOnline/{id}','DriverController@make_online')->middleware('auth:api');
-Route::get('driver/MakeOffline/{id}','DriverController@make_offline')->middleware('auth:api');
-Route::get('driver/MakeOntrip/{id}','DriverController@make_ontrip')->middleware('auth:api');
+Route::post('driver/addLocation','DriverController@add_location');
+Route::post('driver/addDeviceToken','DriverController@add_deviceToken');
+Route::get('driver/MakeOnline/{id}','DriverController@make_online');
+Route::get('driver/MakeOffline/{id}','DriverController@make_offline');
+Route::get('driver/MakeOntrip/{id}','DriverController@make_ontrip');
 
 
 //End Drivers Routes
