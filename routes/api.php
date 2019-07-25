@@ -79,6 +79,7 @@ Route::post('driver/addDeviceToken','DriverController@add_deviceToken');
 Route::get('driver/MakeOnline/{id}','DriverController@make_online');
 Route::get('driver/MakeOffline/{id}','DriverController@make_offline');
 Route::get('driver/MakeOntrip/{id}','DriverController@make_ontrip');
+Route::post('driver/changeAvailability','DriverController@change_availability');
 
 
 //End Drivers Routes
@@ -110,6 +111,10 @@ Route::get('home/all_resturants','HomeController@get_all_resturants')->middlewar
 Route::post('order/create','ResturantApi\CurrentOrdersController@CreateNewOrder')->middleware('cors');
 Route::post('order/Response','ResturantApi\CurrentOrdersController@OrderNotficationResponse')->middleware('cors');
 
+/* order Apis */
+
+Route::post('order/changeStatus','OrderController@change_order_status');
+Route::get('order/current/{id}','OrderController@get_current_order');
 //End Orders Routes
 /* =================================================================*/
 

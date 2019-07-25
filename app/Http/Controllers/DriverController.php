@@ -10,6 +10,7 @@ use GuzzleHttp\Client as HttpClient;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Intervention\Image\Facades\Image;
+use App\Http\Resources\DriverResource;
 use Validator;
 use Hash;
 use Response;
@@ -290,7 +291,11 @@ class DriverController extends Controller
 
                  } else {
                  $this->_result->IsSuccess = true;
-                 $this->_result->Data = ['access_token'=>$access['access_token'],'refresh_token'=>$access['refresh_token'],'user'=>$user];
+                 $this->_result->Data = [
+                    'access_token'=>$access['access_token'],
+                    'refresh_token'=>$access['refresh_token'],
+                    'user'=> new DriverResource($user)
+             ];
                  return Response::json($this->_result,200);
                  }
              }
@@ -404,6 +409,34 @@ class DriverController extends Controller
              return Response::json($this->_result,200);
 
          }// end add_deviceToken
+
+         public function change_availability(Request $request) {
+
+            $validation=Validator::make($request->all(),
+             [
+
+                'driver_id'     =>'required|numeric',
+                'availability'   =>'required|in:on,off,ontrip',
+
+             ]);
+
+             if($validation->fails())
+             {
+                $this->_result->IsSuccess = false;
+                $this->_result->FaildReason =  $validation->errors()->first();
+                return Response::json($this->_result,200);
+             }
+
+
+              $update =  DB::table('drivers')
+                  ->where('user_id', $request->driver_id)
+                  ->update(['availability' => $request->availability]);
+
+              $this->_result->IsSuccess = true;
+              $this->_result->Data = $update;
+             return Response::json($this->_result,200);
+
+         } // end change_availability
 
 
 

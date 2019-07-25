@@ -28,6 +28,7 @@ class CreateOrdersTable extends Migration
             $table->dateTime('expectedTimeToArrive')->nullable();
             $table->dateTime('received_at')->nullable();
             $table->dateTime('delivered_at')->nullable();
+            
             $table->unsignedBigInteger('driver_id')->nullable();
             $table->foreign('driver_id')->references('id')->on('users')->onDelete('cascade');
 
