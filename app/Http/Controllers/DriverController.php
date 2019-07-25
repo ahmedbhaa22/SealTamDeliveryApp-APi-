@@ -45,7 +45,7 @@ class DriverController extends Controller
             'email'=>'required|string|unique:users,email',
             'password'=>'required|string|min:5',
             'telephone'     =>'required|numeric|min:5',
-            'identity'     =>'required|numeric|min:14',
+
             'image' => 'image|required',
             'frId' => 'image|required',
             'backId' => 'image|required',
@@ -106,7 +106,7 @@ class DriverController extends Controller
             $DriverInfo = new Driver();
             $DriverInfo->user_id   = $NewDriver->id;
             $DriverInfo->telephone = $request->telephone;
-            $DriverInfo->identity = $request->identity;
+            $DriverInfo->identity = time();
             $DriverInfo->image     = $image ;
             $DriverInfo->backId    = $backId;
             $DriverInfo->frontId    = $frontId;
@@ -381,6 +381,7 @@ class DriverController extends Controller
 
          $validation=Validator::make($request->all(),
              [
+
                 'driver_id'     =>'required|numeric',
                 'deviceToken'   =>'required|string',
 
@@ -391,8 +392,6 @@ class DriverController extends Controller
                 $this->_result->IsSuccess = false;
                 $this->_result->FaildReason =  $validation->errors()->first();
                 return Response::json($this->_result,200);
-
-
              }
 
 

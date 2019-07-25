@@ -104,7 +104,14 @@ Route::get('home/all_resturants','HomeController@get_all_resturants')->middlewar
 //End Home Routes
 /* =================================================================*/
 
+//Start Orders Routes
+/* =================================================================*/
 
+Route::post('order/create','ResturantApi\CurrentOrdersController@CreateNewOrder')->middleware('cors');
+Route::post('order/Response','ResturantApi\CurrentOrdersController@OrderNotficationResponse')->middleware('cors');
+
+//End Orders Routes
+/* =================================================================*/
 
 Route::get('/test', function (Request $request) {
     return Response::json('sda');

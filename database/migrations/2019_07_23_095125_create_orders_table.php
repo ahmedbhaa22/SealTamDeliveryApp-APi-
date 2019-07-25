@@ -15,12 +15,19 @@ class CreateOrdersTable extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->dateTime('orderDate');
-            $table->dateTime('expectedTimeToArrive');
-            $table->enum('status',['-2','-1','0','1', '2','3','4'])->default('0');
-            $table->double('totalCost', 8, 2);
-            $table->double('totalProfit', 8, 2)->nullable();
-
+            $table->enum('status',['-2','-1','0','1','2','3','4','5'])->default('0');
+            $table->string('customerPhone');
+            $table->string('customerName');
+            $table->string('OrderNumber');
+            $table->string('JobId')->nullable();
+            $table->longtext('orderDest');
+            $table->double('orderCost', 8, 2);
+            $table->double('deliveryCost', 8, 2)->nullable();
+            $table->double('companyProfit', 8, 2)->nullable();
+            $table->double('expectedDeliveryCost', 8, 2);
+            $table->dateTime('expectedTimeToArrive')->nullable();
+            $table->dateTime('received_at')->nullable();
+            $table->dateTime('delivered_at')->nullable();
             $table->unsignedBigInteger('driver_id')->nullable();
             $table->foreign('driver_id')->references('id')->on('users')->onDelete('cascade');
 

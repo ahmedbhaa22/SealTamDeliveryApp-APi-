@@ -30,4 +30,7 @@ class AddSeeder extends Seeder
             'image' => 'default.jpg',
         ]);
     }
+
 }
+
+

@@ -15,7 +15,9 @@ class CreateOrderDriversTable extends Migration
     {
         Schema::create('order_drivers', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->enum('status',['0','1'])->default('0');
+            $table->enum('status',['-1','0','1'])->default('0');
+            // -1=> Refused---- 0 => pending    1 => Accepted
+
             $table->double('cost', 8, 2)->nullable();
 
             $table->unsignedBigInteger('driver_id')->nullable();
