@@ -72,7 +72,7 @@ class CurrentOrdersController extends Controller
                 throw $e;
             }
             DB::commit();
-            $this->dispatch((new updateFireBase($request->resturant_id,$order))->onQueue('firebase'));
+            $this->dispatch((new updateFireBase($order))->onQueue('firebase'));
 
 
         }
@@ -82,7 +82,7 @@ class CurrentOrdersController extends Controller
             return Response::json($this->_result,200);
         }
 
-        $id = $this->dispatch((new checkIfOrderDone($order))->delay(now()->addSeconds(90)));
+        $id = $this->dispatch((new checkIfOrderDone($order))->onQueue('firebase')->delay(now()->addSeconds(90)));
         $order->JobId = $id;
         $order->save();
 
@@ -188,7 +188,7 @@ class CurrentOrdersController extends Controller
             $this->UpdateOrderDriverTable($request->order_id,$request->driver_id,'-1');
         }
         else if($request->responseStatus=='1'){
-            $this->UpdateOrderDriverTable($request->order_id,$request->driver_id,'2',$request->delivrycost);
+            $this->UpdateOrderDriverTable($request->order_id,$request->driver_id,'1',$request->delivrycost);
         }
 
         $NumberOfDriversDidnotRespond = Order_driver_Table::where('order_id',$request->order_id)->where('status','0')->count();
@@ -196,10 +196,7 @@ class CurrentOrdersController extends Controller
 
         if($NumberOfDriversDidnotRespond == 0 && $order->status =='0' )
         {
-            // DB::table('jobs')->where('id',$order->JobId)->delete();
-            $this->dispatch((new checkIfOrderDone($order)));
-               //You SHould Check If Request Already
-
+            checkIfOrderDone::dispatch($order)->onQueue('firebase');
         }
 
 

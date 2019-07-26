@@ -46,7 +46,7 @@ class DriverController extends Controller
             'email'=>'required|string|unique:users,email',
             'password'=>'required|string|min:5',
             'telephone'     =>'required|numeric|min:5',
-
+            'identity' => 'required|numeric|min:14|unique:drivers,identity',
             'image' => 'image|required',
             'frId' => 'image|required',
             'backId' => 'image|required',
@@ -107,7 +107,7 @@ class DriverController extends Controller
             $DriverInfo = new Driver();
             $DriverInfo->user_id   = $NewDriver->id;
             $DriverInfo->telephone = $request->telephone;
-            $DriverInfo->identity = time();
+            $DriverInfo->identity =$request->identity;
             $DriverInfo->image     = $image ;
             $DriverInfo->backId    = $backId;
             $DriverInfo->frontId    = $frontId;
@@ -131,7 +131,7 @@ class DriverController extends Controller
          [  'name'          =>'required|string',
             'status'        =>'required|numeric',
             'telephone'     =>'sometimes|numeric|min:5',
-            'identity'     =>'required|numeric|min:14',
+            'identity'     =>'required|numeric|unique:drivers,identity,'.$id.',user_id',
             'canReceiveOrder'        =>'required|numeric',
          ]);
 
@@ -200,13 +200,13 @@ class DriverController extends Controller
 
            public function get_driver($id)
            {
-            $resturant = DB::table('users')
+            $Driver = DB::table('users')
                 ->join('drivers','users.id', '=', 'drivers.user_id')
-                ->where('users.UserType','driver')->where('drivers.id',$id)
+                ->where('users.UserType','driver')->where('drivers.user_id',$id)
                 ->get();
 
                 $this->_result->IsSuccess = true;
-                $this->_result->Data = $resturant;
+                $this->_result->Data = $Driver;
                 return Response::json($this->_result,200);
              }
 

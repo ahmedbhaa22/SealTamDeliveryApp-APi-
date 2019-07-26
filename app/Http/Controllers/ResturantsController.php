@@ -135,7 +135,7 @@ class ResturantsController extends Controller
            {
            	$resturant = DB::table('users')
         		->join('resturants','users.id', '=', 'resturants.user_id')
-        		->where('users.UserType','resturant')->where('resturants.id',$id)
+        		->where('users.UserType','resturant')->where('resturants.user_id',$id)
                 ->first();
 
 	            $this->_result->IsSuccess = true;
