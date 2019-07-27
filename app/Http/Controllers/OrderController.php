@@ -144,7 +144,7 @@ class OrderController extends Controller
                   ->join('order_drivers','orders.id', '=', 'order_drivers.order_id')
                   ->join('resturants','resturants.user_id', '=', 'orders.resturant_id')
                   ->join('users','users.id', '=', 'orders.resturant_id')
-                  ->select('orders.id','orders.status as status','deliveryCost','customerPhone','customerName','OrderNumber','orderDest','orderCost','users.name as ResturantName','resturants.lat as resturantslat','resturants.lng as resturantslng')
+                  ->select('orders.id','orders.status as status','deliveryCost','customerPhone','customerName','OrderNumber','orderDest','orderCost','users.name as ResturantName','resturants.lat as resturantslat','resturants.lng as resturantslng','resturants.location as resturantslocation','resturants.telephone as resturantsTelephone')
                   ->where('orders.driver_id', $driver_id)->whereIn('orders.status', ['1', '2', '3'])
                   ->get();
 
@@ -153,7 +153,7 @@ class OrderController extends Controller
                 ->join('order_drivers','orders.id', '=', 'order_drivers.order_id')
                 ->join('resturants','resturants.user_id', '=', 'orders.resturant_id')
                 ->join('users','users.id', '=', 'orders.resturant_id')
-                ->select('orders.id','orders.status as status','customerPhone','customerName','OrderNumber','orderDest','orderCost','users.name as ResturantName','resturants.lat as resturantslat','resturants.lng as resturantslng')
+                ->select('orders.id','orders.status as status','customerPhone','customerName','OrderNumber','orderDest','orderCost','users.name as ResturantName','resturants.lat as resturantslat','resturants.lng as resturantslng','resturants.location as resturantslocation','resturants.telephone as resturantsTelephone')
                 ->where('order_drivers.driver_id',$driver_id)->whereNull('orders.driver_id')->whereIn('orders.status', ['0'])
                 ->get();
 
