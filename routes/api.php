@@ -116,6 +116,7 @@ Route::post('order/Response','ResturantApi\CurrentOrdersController@OrderNotficat
 Route::post('order/changeStatus','OrderController@change_order_status');
 Route::get('order/current/{id}','OrderController@get_current_order');
 Route::post('order/cancelorder','OrderController@cancel_order_status');
+Route::post('order/history','OrderController@get_history');
 
 
 //End Orders Routes

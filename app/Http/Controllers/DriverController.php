@@ -416,7 +416,7 @@ class DriverController extends Controller
              [
 
                 'driver_id'     =>'required|numeric',
-                'availability'   =>'required|in:on,off,ontrip',
+                'status'   =>'required|in:on,off,ontrip',
 
              ]);
 
@@ -430,7 +430,7 @@ class DriverController extends Controller
 
               $update =  DB::table('drivers')
                   ->where('user_id', $request->driver_id)
-                  ->update(['availability' => $request->availability]);
+                  ->update(['availability' => $request->status]);
 
               $this->_result->IsSuccess = true;
               $this->_result->Data = $update;

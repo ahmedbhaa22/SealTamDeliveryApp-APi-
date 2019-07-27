@@ -96,11 +96,13 @@ class OrderController extends Controller
             if($order){
                 if($order->driver_id != $request->driver_id ){
                     $this->_result->IsSuccess = true;
+                       $this->_result->FaildReason = 'not-driver';
                    return Response::json($this->_result,200);
                 }
 
                 $oldStatus =$order->status;
-                if($oldStatus >= $request->status || $order->status != '-2'|| $order->status != '-1'){
+                if($oldStatus >= $request->status || $order->status == '-2'|| $order->status == '-1'){
+                       $this->_result->FaildReason = 'not-available';
 
                     $this->_result->IsSuccess = true;
                    return Response::json($this->_result,200);
@@ -128,6 +130,7 @@ class OrderController extends Controller
                 }
             }
 
+               $this->_result->FaildReason = 'ddd';
 
               $this->_result->IsSuccess = true;
              return Response::json($this->_result,200);
@@ -161,4 +164,53 @@ class OrderController extends Controller
 
 
          } // end get_current_order
+
+                  public function  get_history(Request $request) {
+
+
+            $validation=Validator::make($request->all(),
+             [
+
+                'driver_id'     =>'required|numeric',
+                'date' => 'date_format:"Y-m-d"|required',
+
+             ]);
+
+             if($validation->fails())
+             {
+                $this->_result->IsSuccess = false;
+                $this->_result->FaildReason =  $validation->errors()->first();
+                return Response::json($this->_result,200);
+             }
+
+ 
+ $orderHistory =  DB::table('orders')
+                  ->join('order_drivers','orders.id', '=', 'order_drivers.order_id')
+                  ->join('resturants','resturants.user_id', '=', 'orders.resturant_id')
+                  ->join('users','users.id', '=', 'orders.resturant_id')
+                  ->select('orders.id','orders.status as status','deliveryCost','customerPhone','customerName','OrderNumber','orderDest','orderCost','users.name as ResturantName','resturants.lat as resturantslat','resturants.lng as resturantslng')
+                  ->where('orders.driver_id', $request->driver_id)->whereDate('orders.created_at', date($request->date))
+                  ->get();
+
+          if(count($orderHistory) > 0) {
+                $ordersCount = count($orderHistory);
+  
+               $currentBalance =  DB::table('drivers')
+                  ->where('user_id', $request->driver_id)->select('CurrentBalance')
+                  ->get();
+
+              $this->_result->IsSuccess = true;
+              $this->_result->Data =['CurrentBalance'=>$currentBalance,'OrdersCount'=>$ordersCount, 'OrderHistory'=>$orderHistory];
+              return Response::json($this->_result,200);
+
+          } else {
+
+              $this->_result->IsSuccess = false;
+              $this->_result->FaildReason = 'There Is No Orders History Found';
+              return Response::json($this->_result,200);
+          }
+                
+
+         } // end get_history
+
 }
