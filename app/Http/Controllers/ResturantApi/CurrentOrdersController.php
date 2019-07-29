@@ -32,7 +32,6 @@ class CurrentOrdersController extends Controller
 
         $validation=Validator::make($request->all(),
         [
-            'totalCost'=>'required|numeric|min:0',
             'resturant_id'=>'required|exists:users,id|exists:resturants,user_id',
             'orderCost'=>'required|numeric',
             'customerPhone'=>'required',
@@ -72,7 +71,30 @@ class CurrentOrdersController extends Controller
                 throw $e;
             }
             DB::commit();
-            $this->dispatch((new updateFireBase($order))->onQueue('firebase'));
+
+            $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/sealteamdeliveryapp-firebase-adminsdk-yra65-b8ba7856bd.json');
+            $firebase = (new Factory)->withServiceAccount($serviceAccount)->withDatabaseUri('https://sealteamdeliveryapp.firebaseio.com')->create();
+            $database = $firebase->getDatabase();
+            if($order->status == '-1'|| $order->status == '-2' || $order->status == '4'){
+                $newOrder = $database
+                ->getReference('Orders/'.$order['resturant_id'].'/'.$order['id'])
+                ->set(null);
+            }
+            if($order->driver_id){
+                $Driver = DB::table('users')
+                ->join('drivers','users.id', '=', 'drivers.user_id')
+                ->where('users.UserType','driver')->where('drivers.user_id',$order->driver_id)
+                ->first();
+                $order= $order->toArray();
+                 $order['DriverName'] =$Driver->name;
+                 $order['DriverPhone'] =$Driver->telephone;
+                 $order['DriverImage'] =$Driver->image;
+                 $order['Driverlat'] =$Driver->lat;
+                 $order['Driverlng'] =$Driver->lng;
+            }
+                 $newOrder = $database
+                 ->getReference('Orders/'.$order['resturant_id'].'/'.$order['id'])
+                 ->set($order);
 
 
         }
@@ -82,7 +104,7 @@ class CurrentOrdersController extends Controller
             return Response::json($this->_result,200);
         }
 
-        $id = $this->dispatch((new checkIfOrderDone($order))->onQueue('firebase')->delay(now()->addSeconds(90)));
+        $id = $this->dispatch((new checkIfOrderDone($order))->onQueue('firebase')->delay(now()->addSeconds(500)));
         $order->JobId = $id;
         $order->save();
 

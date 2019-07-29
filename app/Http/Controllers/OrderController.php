@@ -103,6 +103,8 @@ class OrderController extends Controller
                 if($oldStatus >= $request->status || $order->status != '-2'|| $order->status != '-1'){
 
                     $this->_result->IsSuccess = true;
+                    $this->_result->FaildReason =  'Closed';
+
                    return Response::json($this->_result,200);
                 }
 
