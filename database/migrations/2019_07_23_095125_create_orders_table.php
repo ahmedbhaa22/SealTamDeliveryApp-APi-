@@ -25,9 +25,14 @@ class CreateOrdersTable extends Migration
             $table->double('deliveryCost', 8, 2)->nullable();
             $table->double('companyProfit', 8, 2)->nullable();
             $table->double('expectedDeliveryCost', 8, 2);
+
             $table->dateTime('expectedTimeToArrive')->nullable();
+            $table->dateTime('arrived_at')->nullable();
             $table->dateTime('received_at')->nullable();
             $table->dateTime('delivered_at')->nullable();
+
+            $table->enum('driverRate',['1','2','3','4','5'])->nullable();
+            $table->enum('returantRate',['1','2','3','4','5'])->nullable();
             
             $table->unsignedBigInteger('driver_id')->nullable();
             $table->foreign('driver_id')->references('id')->on('users')->onDelete('cascade');
