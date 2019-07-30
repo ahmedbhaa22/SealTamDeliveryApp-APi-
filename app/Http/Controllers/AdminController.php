@@ -52,6 +52,14 @@ class AdminController extends Controller
             $NewAdmin->save();
 
 
+            $NewAdminDetails= new Admin();
+
+                $NewAdminDetails->AdminType='supervisor';
+                $NewAdminDetails->user_id=$NewAdmin->id;
+                $NewAdminDetails->hidden=false;
+                $NewAdminDetails->save();
+
+
              $this->_result->IsSuccess = true;
              $this->_result->Data = ['user'=>$NewAdmin];
              return Response::json($this->_result,200);
@@ -61,7 +69,14 @@ class AdminController extends Controller
             public function get_all_admin()
             {
 
-	            $Admins= User::where('UserType','admin')->get();
+	         //   $Admins= User::where('UserType','admin')->get();
+                  $Admins=  DB::table('users')
+                  ->join('admins','users.id', '=', 'admins.user_id')
+                  ->where('users.UserType', 'admin')
+                  ->where('admins.hidden', false)
+                  ->select('users.id','users.name','users.email','users.Status')
+                  ->get();
+
 	            $this->_result->IsSuccess = true;
 	            $this->_result->Data = $Admins;
 	            return Response::json($this->_result,200);
@@ -93,19 +108,11 @@ class AdminController extends Controller
 
 
 	         }
-             $NewAdmin= Admin::where('user_id', $request->admin_Id)->first();
-             if($NewAdmin == null){
-                $NewAdmin= new Admin();
-
-                $NewAdmin->AdminType=$request->type;
-                $NewAdmin->user_id=$request->admin_Id;
-                $NewAdmin->save();
-             }
-             else{
-                $update =  DB::table('admins')
+      
+                $NewAdmin =  DB::table('admins')
                 ->where('user_id', $request->admin_Id)
                 ->update(['AdminType' => $request->type]);
-             }
+             
 
 
 
