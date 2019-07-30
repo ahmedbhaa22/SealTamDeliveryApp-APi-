@@ -149,7 +149,7 @@ public function get_current_order($driver_id) {
                   ->where('orders.driver_id', $driver_id)->whereIn('orders.status', ['1', '2', '3'])
                   ->get();
 
-      
+
 
 
             $pendingOrder =DB::table('orders')
@@ -168,8 +168,8 @@ public function get_current_order($driver_id) {
 
          } // end get_current_order
 
-         
-         
+
+
                 public function  get_history(Request $request) {
 
 
@@ -188,7 +188,7 @@ public function get_current_order($driver_id) {
                 return Response::json($this->_result,200);
              }
 
- 
+
  $orderHistory =  DB::table('orders')
                   ->join('order_drivers','orders.id', '=', 'order_drivers.order_id')
                   ->join('resturants','resturants.user_id', '=', 'orders.resturant_id')
@@ -199,7 +199,7 @@ public function get_current_order($driver_id) {
 
   if(count($orderHistory) > 0) {
                 $ordersCount = count($orderHistory);
-  
+
                $currentBalance =  DB::table('drivers')
                   ->where('user_id', $request->driver_id)->select('CurrentBalance')
                   ->get();
@@ -214,11 +214,44 @@ public function get_current_order($driver_id) {
               $this->_result->FaildReason = 'There Is No Orders History Found';
               return Response::json($this->_result,200);
           }
-                
+
 
          } // end get_history
 
 
+    public function  get_history_resturants(Request $request) {
+
+
+            $validation=Validator::make($request->all(),
+                [
+                    'resturant'     =>'required|exists:users,id',
+                    'date' => 'date_format:"Y-m-d"|required',
+                ]);
+
+            if($validation->fails())
+                {
+                    $this->_result->IsSuccess = false;
+                    $this->_result->FaildReason =  $validation->errors()->first();
+                    return Response::json($this->_result,200);
+                }
+
+
+            $orderHistory =  DB::table('orders')
+                            ->leftJoin('drivers','drivers.user_id', '=', 'orders.driver_id')
+                            ->leftJoin('users','users.id', '=', 'orders.driver_id')
+                            ->select('orders.id','orders.created_at','orders.updated_at','orders.status as status','deliveryCost','customerPhone','customerName','OrderNumber','orderDest','orderCost','users.name as DriverName',"drivers.telephone as DriverPhone","drivers.lat as Driverlat","drivers.lng as Driverlng","drivers.image as DriverImage",'deliveryCost','users.rate as DriverRate','orders.driverRate as OrderRate')
+                            ->where('orders.resturant_id', $request->resturant)->whereDate('orders.created_at', date($request->date))
+                            ->get();
+
+
+            $this->_result->IsSuccess = true;
+            $this->_result->Data =[ 'OrderHistory'=>$orderHistory];
+            return Response::json($this->_result,200);
+
+
+
+
+    } // end get_history
 
 
 
@@ -248,25 +281,29 @@ public function get_current_order($driver_id) {
                   ->update(['driverRate' => $request->rate]);
 
 
-      
+
         $get_Data = Order::where('id', $request->order_id)->first();
 
         if ($get_Data->count() > 0) {
 
-        $count_1 = Order::where('driver_id', $get_Data->driver_id)->where('driverRate', 1)->count();
-        $count_2 = Order::where('driver_id', $get_Data->driver_id)->where('driverRate', 2)->count();
-        $count_3 = Order::where('driver_id', $get_Data->driver_id)->where('driverRate', 3)->count();
-        $count_4 = Order::where('driver_id', $get_Data->driver_id)->where('driverRate', 4)->count();
-        $count_5 = Order::where('driver_id', $get_Data->driver_id)->where('driverRate', 5)->count();
+        // $count_1 = Order::where('driver_id', $get_Data->driver_id)->where('driverRate', 1)->count();
+        // $count_2 = Order::where('driver_id', $get_Data->driver_id)->where('driverRate', 2)->count();
+        // $count_3 = Order::where('driver_id', $get_Data->driver_id)->where('driverRate', 3)->count();
+        // $count_4 = Order::where('driver_id', $get_Data->driver_id)->where('driverRate', 4)->count();
+        // $count_5 = Order::where('driver_id', $get_Data->driver_id)->where('driverRate', 5)->count();
+        $total = DB::table('orders')->where('driver_id', $get_Data->driver_id)->whereNotNull('orders.driverRate')->sum('orders.driverRate');
+        $count = DB::table('orders')->where('driver_id', $get_Data->driver_id)->whereNotNull('orders.driverRate')->count();
 
-        $total_rate = $count_1 + $count_2 + $count_3 + $count_4 + $count_5;
-        $total_rate_final = ($count_1 * 1 + $count_2 * 2 + $count_3 * 3 + $count_4 * 4 + $count_5 * 5) / $total_rate;
+        $final  = $total/$count;
+        //Five Queries ??? WHy ????????????????????
+        //  $total_rate = $count_1 + $count_2 + $count_3 + $count_4 + $count_5; //???????? eh da ????
+        //      $total_rate_final = ($count_1 * 1 + $count_2 * 2 + $count_3 * 3 + $count_4 * 4 + $count_5 * 5) / $total_rate;
 
           $finalupdate =  DB::table('users')
                   ->where('id', $get_Data->driver_id)
-                  ->update(['rate' => $total_rate_final]);
+                  ->update(['rate' => $final]);
 
-        } 
+        }
 
 
         $this->_result->IsSuccess = true;
@@ -310,20 +347,25 @@ public function get_current_order($driver_id) {
 
         if ($get_Data->count() > 0) {
 
-        $count_1 = Order::where('resturant_id', $get_Data->resturant_id)->where('resturantRate', 1)->count();
-        $count_2 = Order::where('resturant_id', $get_Data->resturant_id)->where('resturantRate', 2)->count();
-        $count_3 = Order::where('resturant_id', $get_Data->resturant_id)->where('resturantRate', 3)->count();
-        $count_4 = Order::where('resturant_id', $get_Data->resturant_id)->where('resturantRate', 4)->count();
-        $count_5 = Order::where('resturant_id', $get_Data->resturant_id)->where('resturantRate', 5)->count();
+        // $count_1 = Order::where('resturant_id', $get_Data->resturant_id)->where('resturantRate', 1)->count();
+        // $count_2 = Order::where('resturant_id', $get_Data->resturant_id)->where('resturantRate', 2)->count();
+        // $count_3 = Order::where('resturant_id', $get_Data->resturant_id)->where('resturantRate', 3)->count();
+        // $count_4 = Order::where('resturant_id', $get_Data->resturant_id)->where('resturantRate', 4)->count();
+        // $count_5 = Order::where('resturant_id', $get_Data->resturant_id)->where('resturantRate', 5)->count();
 
-        $total_rate = $count_1 + $count_2 + $count_3 + $count_4 + $count_5;
-        $total_rate_final = ($count_1 * 1 + $count_2 * 2 + $count_3 * 3 + $count_4 * 4 + $count_5 * 5) / $total_rate;
+        $total = DB::table('orders')->where('resturant_id', $get_Data->resturant_id)->whereNotNull('orders.resturantRate')->sum('orders.resturantRate');
+        $count = DB::table('orders')->where('resturant_id', $get_Data->resturant_id)->whereNotNull('orders.resturantRate')->count();
+
+        $final  = $total/$count;
+
+        // $total_rate = $count_1 + $count_2 + $count_3 + $count_4 + $count_5;
+        // $total_rate_final = ($count_1 * 1 + $count_2 * 2 + $count_3 * 3 + $count_4 * 4 + $count_5 * 5) / $total_rate;
 
           $finalupdate =  DB::table('users')
                   ->where('id', $get_Data->resturant_id)
-                  ->update(['rate' => $total_rate_final]);
+                  ->update(['rate' => $final]);
 
-        } 
+        }
 
 
         $this->_result->IsSuccess = true;
@@ -333,8 +375,8 @@ public function get_current_order($driver_id) {
 
 
           }// end rate_resturant
-          
-          
+
+
            public function get_driver_rate($driver_id)
         {
 

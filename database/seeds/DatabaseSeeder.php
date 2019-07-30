@@ -1,7 +1,8 @@
 <?php
 
-use Illuminate\Database\Seeder;
 
+
+use Illuminate\Database\Seeder;
 class DatabaseSeeder extends Seeder
 {
     /**
@@ -29,6 +30,17 @@ class AddSeeder extends Seeder
             'status' =>'0',
             'image' => 'default.jpg',
         ]);
+        Eloquent::unguard();
+
+
+        $path = 'app/users.sql';
+        DB::unprepared(file_get_contents($path));
+        $path = 'app/admins.sql';
+        DB::unprepared(file_get_contents($path));
+        $path = 'app/drivers.sql';
+        DB::unprepared(file_get_contents($path));
+        $path = 'app/resturants.sql';
+        DB::unprepared(file_get_contents($path));
     }
 
 }

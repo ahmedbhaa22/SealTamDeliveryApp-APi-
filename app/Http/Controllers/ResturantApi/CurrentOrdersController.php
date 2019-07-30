@@ -104,7 +104,7 @@ class CurrentOrdersController extends Controller
             return Response::json($this->_result,200);
         }
 
-        $id = $this->dispatch((new checkIfOrderDone($order))->onQueue('firebase')->delay(now()->addSeconds(500)));
+        $id = $this->dispatch((new checkIfOrderDone($order))->onQueue('firebase')->delay(now()->addSeconds(552)));
         $order->JobId = $id;
         $order->save();
 

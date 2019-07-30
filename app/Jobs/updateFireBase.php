@@ -59,6 +59,8 @@ class updateFireBase implements ShouldQueue
              $this->order['DriverPhone'] =$Driver->telephone;
              $this->order['Driverlat'] =$Driver->lat;
              $this->order['Driverlng'] =$Driver->lng;
+             $this->order['DriverRate'] =$Driver->rate;
+             $this->order['DriverImage'] =$Driver->image;
 
              $newOrder = $database
              ->getReference('Orders/'.$this->order['resturant_id'].'/'.$this->order['id'])

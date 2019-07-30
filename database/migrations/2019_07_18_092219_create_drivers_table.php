@@ -27,7 +27,7 @@ class CreateDriversTable extends Migration
             $table->string('lng')->nullable();
             $table->string('CurrentBalance')->default('0');
             $table->enum('canReceiveOrder',['0', '1'])->default(1);
-            $table->enum('availability',['off','on','ontrip'])->nullable();
+            $table->enum('availability',['off','on'])->default('off');
             $table->longtext('deviceToken')->nullable();
 
             $table->unsignedBigInteger('user_id')->nullable();
