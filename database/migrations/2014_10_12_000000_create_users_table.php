@@ -20,7 +20,7 @@ class CreateUsersTable extends Migration
             $table->string('password');
             $table->enum('UserType',['admin','driver','resturant']);
             $table->boolean('Status');
-            $table->double('rate', 8, 2);
+            $table->double('rate', 8, 2)->default(0);
             $table->rememberToken();
             $table->timestamps();
         });

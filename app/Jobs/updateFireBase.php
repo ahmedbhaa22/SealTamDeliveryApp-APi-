@@ -39,10 +39,17 @@ class updateFireBase implements ShouldQueue
      */
     public function handle()
     {
+
         $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/sealteamdeliveryapp-firebase-adminsdk-yra65-b8ba7856bd.json');
         $firebase = (new Factory)->withServiceAccount($serviceAccount)->withDatabaseUri('https://sealteamdeliveryapp.firebaseio.com')->create();
         $database = $firebase->getDatabase();
-        if($this->order->driver_id){
+        if($this->order->status == '-1'|| $this->order->status == '-2' || $this->order->status == '4'){
+            $newOrder = $database
+            ->getReference('Orders/'.$this->order['resturant_id'].'/'.$this->order['id'])
+            ->set(null);
+        }
+        else {
+            if($this->order->driver_id){
             $Driver = DB::table('users')
             ->join('drivers','users.id', '=', 'drivers.user_id')
             ->where('users.UserType','driver')->where('drivers.user_id',$this->order->driver_id)
@@ -52,6 +59,9 @@ class updateFireBase implements ShouldQueue
              $this->order['DriverPhone'] =$Driver->telephone;
              $this->order['Driverlat'] =$Driver->lat;
              $this->order['Driverlng'] =$Driver->lng;
+             $this->order['DriverRate'] =$Driver->rate;
+             $this->order['DriverImage'] =$Driver->image;
+
              $newOrder = $database
              ->getReference('Orders/'.$this->order['resturant_id'].'/'.$this->order['id'])
              ->set($this->order);
@@ -61,7 +71,7 @@ class updateFireBase implements ShouldQueue
             ->getReference('Orders/'.$this->resturant_id.'/'.$this->order->id)
             ->set($this->order);
         }
-
+    }
 
     }
     public function retryUntil()

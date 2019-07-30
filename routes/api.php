@@ -117,10 +117,13 @@ Route::post('order/changeStatus','OrderController@change_order_status');
 Route::get('order/current/{id}','OrderController@get_current_order');
 Route::post('order/cancelorder','OrderController@cancel_order_status');
 Route::post('order/history','OrderController@get_history');
+Route::post('order/resturant/history','OrderController@get_history_resturants');
 
 Route::get('orders/DriverRate/{id}','OrderController@get_driver_rate');
 Route::get('orders/ResturantRate/{id}','OrderController@get_resturant_rate');
 Route::post('order/RateDriver','OrderController@rate_driver');
+
+
 Route::post('order/RateResturant','OrderController@rate_resturant');
 
 
