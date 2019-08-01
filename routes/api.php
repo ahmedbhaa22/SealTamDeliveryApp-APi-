@@ -122,6 +122,7 @@ Route::post('order/resturant/history','OrderController@get_history_resturants');
 Route::get('orders/DriverRate/{id}','OrderController@get_driver_rate');
 Route::get('orders/ResturantRate/{id}','OrderController@get_resturant_rate');
 Route::post('order/RateDriver','OrderController@rate_driver');
+Route::post('resturant/RateDriver','OrderController@rate_driver');
 
 
 Route::post('order/RateResturant','OrderController@rate_resturant');
