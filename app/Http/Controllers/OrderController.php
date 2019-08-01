@@ -12,9 +12,13 @@ use App\Order;
 use App\Driver;
 use App\Http\ViewModel\ResultVM;
 use App\Jobs\updateFireBase;
+<<<<<<< HEAD
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
 use Kreait\Firebase\Database;
+=======
+use Carbon\Carbon;
+>>>>>>> 95fc374d012710560f25b99acb3e4a7e56c91b70
 class OrderController extends Controller
 {
 
@@ -81,7 +85,7 @@ class OrderController extends Controller
        }
     }
 
-     public function change_order_status(Request $request) {
+   public function change_order_status(Request $request) {
 
             $validation=Validator::make($request->all(),
              [
@@ -102,49 +106,88 @@ class OrderController extends Controller
             $order = DB::table('orders')->where('driver_id', $request->driver_id)
              ->where('id', $request->order_id)->first();
 
+<<<<<<< HEAD
             if($order){
                 if($order->driver_id != $request->driver_id ){
                     $this->_result->IsSuccess = false;
                        $this->_result->FaildReason = 'not-driver';
                    return Response::json($this->_result,200);
+=======
+            if($order) 
+            {
+               if($order->driver_id != $request->driver_id )
+                 {
+                  $this->_result->IsSuccess = true;
+                  $this->_result->FaildReason = 'not-driver';
+                  return Response::json($this->_result,200);
+>>>>>>> 95fc374d012710560f25b99acb3e4a7e56c91b70
                 }
 
                 $oldStatus =$order->status;
-                if($oldStatus >= $request->status || $order->status == '-2'|| $order->status == '-1'){
-                       $this->_result->FaildReason = 'not-available';
+
+                if($oldStatus >= $request->status || $order->status == '-2'|| $order->status == '-1')
+                {
+                    $this->_result->FaildReason = 'not-available';
 
                     $this->_result->IsSuccess = false;
                     $this->_result->FaildReason =  'Closed';
 
                    return Response::json($this->_result,200);
                 }
+                else {
 
-                else{
+                    
+                    if ($request->status == '2')
+                    {
+                      $update =  DB::table('orders')
+                       ->where('id', $request->order_id)
+                       ->update(['status' => $request->status, 'arrived_at'=>Carbon::now('GMT+2')]);
+                    }
 
-                    $update =  DB::table('orders')
-                    ->where('id', $request->order_id)
-                    ->update(['status' => $request->status]);
-                    if($request->status == '4'){
-                        $Driver =Driver::where('user_id',$order->driver_id)
-                        ->first();
-                        $Driver->CurrentBalance += $order->deliveryCost;
-                        if($Driver->CurrentBalance >= 100){
-                            $Driver->canReceiveOrder = 0;
+                     if ($request->status == '3')
+                    {
+                       $update =  DB::table('orders')
+                       ->where('id', $request->order_id)
+                       ->update(['status' => $request->status, 'received_at'=>Carbon::now('GMT+2')]);
+                     //  ->update(['status' => $request->status, 'received_at'=>now()]);
+                     //  ->update(['status' => $request->status, 'received_at'=>date("Y-m-d H:i:s")]);
+                    }
 
-                        }
-                        $Driver->save();
+
+                    if($request->status == '4')
+                    {
+                      $update =  DB::table('orders')
+                      ->where('id', $request->order_id)
+                      ->update(['status' => $request->status, 'delivered_at'=>Carbon::now('GMT+2')]);
+
+
+                      $Driver =Driver::where('user_id',$order->driver_id)
+                      ->first();
+                      
+                     $Driver->CurrentBalance += $order->deliveryCost;
+                      if($Driver->CurrentBalance >= 100)
+                      {
+                          $Driver->canReceiveOrder = '0';
+
+                      }
+                      $Driver->save();
                     }
 
                     $order = Order::find($request->order_id);
                     updateFireBase::dispatch($order)->onQueue('firebase');
 
+
+                     $this->_result->IsSuccess = true;
+                     $this->_result->Data = $update;
+                    return Response::json($this->_result,200);
+
+
+
                 }
             }
 
-               $this->_result->FaildReason = 'ddd';
 
-              $this->_result->IsSuccess = true;
-             return Response::json($this->_result,200);
+              
 
          } // end change_order_status
 
