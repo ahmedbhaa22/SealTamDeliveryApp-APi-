@@ -12,8 +12,13 @@ use App\Order;
 use App\Driver;
 use App\Http\ViewModel\ResultVM;
 use App\Jobs\updateFireBase;
+
+use Kreait\Firebase\Factory;
+use Kreait\Firebase\ServiceAccount;
+use Kreait\Firebase\Database;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Input;
+
 class OrderController extends Controller
 {
 
@@ -184,7 +189,14 @@ class OrderController extends Controller
             ->where('id', $request->order_id)->update(['status'=>'-2']);
             $order = Order::find($request->order_id);
 
-            updateFireBase::dispatch($order)->onQueue('firebase');
+            $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/sealteamdeliveryapp-firebase-adminsdk-yra65-b8ba7856bd.json');
+            $firebase = (new Factory)->withServiceAccount($serviceAccount)->withDatabaseUri('https://sealteamdeliveryapp.firebaseio.com')->create();
+            $database = $firebase->getDatabase();
+
+                $newOrder = $database
+                ->getReference('Orders/'.$order['resturant_id'].'/'.$order['id'])
+                ->set(null);
+
             $this->_result->IsSuccess = true;
             return Response::json($this->_result,200);
 
@@ -232,9 +244,10 @@ class OrderController extends Controller
             {
                if($order->driver_id != $request->driver_id )
                  {
-                  $this->_result->IsSuccess = true;
+                  $this->_result->IsSuccess = false;
                   $this->_result->FaildReason = 'not-driver';
                   return Response::json($this->_result,200);
+
                 }
 
                 $oldStatus =$order->status;
@@ -243,7 +256,7 @@ class OrderController extends Controller
                 {
                     $this->_result->FaildReason = 'not-available';
 
-                    $this->_result->IsSuccess = true;
+                    $this->_result->IsSuccess = false;
                     $this->_result->FaildReason =  'Closed';
 
                    return Response::json($this->_result,200);
