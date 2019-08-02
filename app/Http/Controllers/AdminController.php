@@ -108,18 +108,13 @@ class AdminController extends Controller
 
 
 	         }
-           if( $request->type = 'manager')
-           {
-                $NewAdmin =  DB::table('admins')
-                ->where('user_id', $request->admin_Id)
-                ->update(['AdminType' => $request->type, 'hidden'=>true]);
-           } else {
+       
       
                 $NewAdmin =  DB::table('admins')
                 ->where('user_id', $request->admin_Id)
                 ->update(['AdminType' => $request->type]);
              
-           }
+           
 
 
 

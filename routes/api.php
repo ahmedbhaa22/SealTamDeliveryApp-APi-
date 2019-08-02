@@ -102,6 +102,9 @@ Route::post('add/edit','AddController@save_add')->middleware('cors','auth:api');
 Route::get('home/home','HomeController@get_items_count')->middleware('cors','auth:api');
 Route::get('home/all_resturants','HomeController@get_all_resturants')->middleware('cors','auth:api');
 
+
+
+
 //End Home Routes
 /* =================================================================*/
 
@@ -110,8 +113,13 @@ Route::get('home/all_resturants','HomeController@get_all_resturants')->middlewar
 
 Route::post('order/create','ResturantApi\CurrentOrdersController@CreateNewOrder')->middleware('cors');
 Route::post('order/Response','ResturantApi\CurrentOrdersController@OrderNotficationResponse')->middleware('cors');
+<<<<<<< HEAD
 Route::post('order/orderPlus','ResturantApi\CurrentOrdersController@order_plus')->middleware('cors');
 
+=======
+//Route::get('orders/{driver_id}/{resturant_id}','OrderController@all_orders');
+Route::get('orders','OrderController@all_orders');
+>>>>>>> e6f4d02693233b9bc1070cbc1101ec106df011d8
 
 /* order Apis */
 

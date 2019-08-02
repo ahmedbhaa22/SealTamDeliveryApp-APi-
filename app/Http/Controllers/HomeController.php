@@ -13,6 +13,7 @@ use Validator;
 use Hash;
 use App\User;
 use App\Http\ViewModel\ResultVM;
+use Carbon\Carbon;
 
 class HomeController extends Controller
 {
@@ -31,8 +32,16 @@ class HomeController extends Controller
 	 	 $drivers = DB::table('users')->where('UserType','driver')->count();
 	 	 $resturants = DB::table('users')->where('UserType','resturant')->count();
 
+
+        // $start = Carbon::now()->startOfMonth();
+        // $end   = Carbon::now();
+        // $totalCost = DB::table('orders')->where('status','4')->whereBetween('created_at',[$start,$end])->sum('orders.deliveryCost');
+
+         $totalCost = DB::table('orders')->where('status','4')->whereMonth('created_at', Carbon::now()->month)->sum('orders.deliveryCost');
+
+
  		 $this->_result->IsSuccess = true;
-         $this->_result->Data = ['admins'=>$admins, 'drivers'=>$drivers,'resturants'=>$resturants];
+         $this->_result->Data = ['admins'=>$admins, 'drivers'=>$drivers,'resturants'=>$resturants,'totalCost'=>$totalCost];
          return Response::json($this->_result,200);
 
 	 }
@@ -50,5 +59,9 @@ class HomeController extends Controller
 	            $this->_result->Data = $all_resturants;
 	            return Response::json($this->_result,200);
              }
+
+
+
+
 
 }
