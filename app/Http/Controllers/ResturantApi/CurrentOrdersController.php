@@ -33,12 +33,12 @@ class CurrentOrdersController extends Controller
         $validation=Validator::make($request->all(),
         [
             'resturant_id'=>'required|exists:users,id|exists:resturants,user_id',
-            'orderCost'=>'required|numeric',
+            'orderCost'=>'required|numeric|max:500000',
             'customerPhone'=>'required',
             'customerName'=>'required',
             'OrderNumber'=>'required',
             'orderDest'=>'required',
-            'expectedDeliveryCost'=>'required|numeric',
+            'expectedDeliveryCost'=>'required|numeric|max:500000',
         ]);
         if($validation->fails())
         {
@@ -61,7 +61,7 @@ class CurrentOrdersController extends Controller
 
                 $order = $this->AddNewOrder($request);
                 foreach($drivers as $driver){
-                    $this->SendNotification($driver->deviceToken,$order,$resturant);
+                    $this->SendNotification($driver->deviceToken,$order,$resturant,'neworder');
                     $this->AddDriverOrder($driver->user_id,$order->id);
                 }
 
@@ -140,7 +140,7 @@ class CurrentOrdersController extends Controller
 
    }
 
-   public function SendNotification($deviceToken,$order,$resturant){
+   public function SendNotification($deviceToken,$order,$resturant,$message){
 
 
     $url = 'https://fcm.googleapis.com/fcm/send';
@@ -150,7 +150,7 @@ class CurrentOrdersController extends Controller
                     $deviceToken
             ),
             'data' => array (
-                    'NotIficationType'=>'neworder',
+                    'NotIficationType'=>$message,
                     'Data'=>[
                         'ResturantName'=>$resturant->name,
                         'ResturantLocation'=>$resturant->location,
@@ -196,7 +196,7 @@ class CurrentOrdersController extends Controller
         $validation=Validator::make($request->all(),
         [
             'driver_id'=>'required|exists:users,id|exists:drivers,user_id',
-            'delivrycost'=>'numeric',
+            'delivrycost'=>'numeric|max:500000',
             'responseStatus'=>'required',
             'order_id'=>"required|exists:orders,id"
         ]);
@@ -238,4 +238,129 @@ class CurrentOrdersController extends Controller
         // }
 
     }
+
+    public function order_plus(Request $request){
+        $validation=Validator::make($request->all(),
+        [
+            'resturant_id'=>'required|exists:users,id|exists:resturants,user_id',
+            'orderCost'=>'required|numeric|max:500000',
+            'customerPhone'=>'required',
+            'order_id'=>'required|exists:orders,id',
+            'customerName'=>'required',
+            'OrderNumber'=>'required',
+            'orderDest'=>'required',
+            'deliveryCost'=>'required|numeric|max:500000',
+        ]);
+        if($validation->fails())
+        {
+           $this->_result->IsSuccess = false;
+           $this->_result->FaildReason =  $validation->errors()->first();
+           return Response::json($this->_result,200);
+        }
+        $order =Order_Table::where('id',$request->order_id)->where('resturant_id',$request->resturant_id)->where('resturant_id',$request->resturant_id)->first();
+
+        if($order == null && $order->status !='2' )
+        {
+           $this->_result->IsSuccess = false;
+           $this->_result->FaildReason =  "You Cannot Add  Orders For This Driver";
+           return Response::json($this->_result,200);
+        }
+        $Driver = DB::table('users')
+        ->join('drivers','users.id', '=', 'drivers.user_id')
+        ->where('users.UserType','driver')->where('drivers.user_id',$order->driver_id)
+        ->first();
+
+        if($Driver->CurrentBalance > 100){
+            $this->_result->IsSuccess = false;
+            $this->_result->FaildReason =  " This Driver Cannot Accept Any More Order For Now";
+            return Response::json($this->_result,200);
+        }
+        DB::beginTransaction();
+
+        try {
+
+        $newOrder =   Order_Table::create([
+            'status' => '2',
+            'resturant_id'=>$order->resturant_id,
+            'orderCost'=>$request->orderCost,
+            'deliveryCost'=>$request->deliveryCost,
+            'customerPhone'=>$request->customerPhone,
+            'customerName'=>$request->customerName,
+            'OrderNumber'=>$request->OrderNumber,
+            'orderDest'=>$request->orderDest,
+            'expectedDeliveryCost'=>$request->deliveryCost,
+            "driver_id"=>$order->driver_id,
+            "companyProfit"=>$order->deliveryCost * .25 ,
+            "arrived_at"=>$order->arrived_at
+            ]);
+            Order_driver_Table::create([
+                'driver_id'=>$order->driver_id,
+                'order_id'=>$newOrder->id,
+                'cost'=>$request->deliveryCost,
+                'status'=>'1',
+                ]);
+
+
+                $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/sealteamdeliveryapp-firebase-adminsdk-yra65-b8ba7856bd.json');
+                $firebase = (new Factory)->withServiceAccount($serviceAccount)->withDatabaseUri('https://sealteamdeliveryapp.firebaseio.com')->create();
+                $database = $firebase->getDatabase();
+
+                $this->SendNotificationOrderAccepted($Driver->deviceToken,$newOrder,'orderaccepted');
+                $newOrder= $newOrder->toArray();
+                 $newOrder['DriverName'] =$Driver->name;
+                 $newOrder['DriverPhone'] =$Driver->telephone;
+                 $newOrder['Driverlat'] =$Driver->lat;
+                 $newOrder['Driverlng'] =$Driver->lng;
+                 $newOrder['DriverRate'] =$Driver->rate;
+                 $newOrder['DriverImage'] =$Driver->image;
+
+                 $newOrder = $database
+                 ->getReference('Orders/'.$newOrder['resturant_id'].'/'.$newOrder['id'])
+                 ->set($newOrder);
+        }
+        catch(Exception $e){
+            DB::rollback();
+            throw $e;
+        }
+
+        DB::commit();
+
+
+         $this->_result->IsSuccess = true;
+         return Response::json($this->_result,200);
+    }
+
+    function SendNotificationOrderAccepted($deviceToken,$order,$message){
+
+
+        $url = 'https://fcm.googleapis.com/fcm/send';
+
+        $fields = array (
+                'registration_ids' => array (
+                        $deviceToken
+                ),
+                'data' => array (
+                        'NotIficationType'=>$message,
+                        'Data'=>[
+                            'OrderId'=>$order->id,
+                        ]
+                )
+        );
+        $fields = json_encode ( $fields );
+
+        $headers = array (
+                'Authorization: key=' . "AAAAM7mSsoE:APA91bFwY_7HlIj1-R72mGcOvpXAVRfUqYnAMwkpFTORJnoCkQzxyi-Rh8mRbiESDPg4xPurR5Z1hjXQW1SzqkksL68UQCx_3zVzXBaOX6LSNhTs_mtAQ7W4AgIkOkdwGd7dL8I4RObu",
+                'Content-Type: application/json'
+        );
+
+        $ch = curl_init ();
+        curl_setopt ( $ch, CURLOPT_URL, $url );
+        curl_setopt ( $ch, CURLOPT_POST, true );
+        curl_setopt ( $ch, CURLOPT_HTTPHEADER, $headers );
+        curl_setopt ( $ch, CURLOPT_RETURNTRANSFER, true );
+        curl_setopt ( $ch, CURLOPT_POSTFIELDS, $fields );
+
+        $result = curl_exec ( $ch );
+        curl_close ( $ch );
+       }
 }

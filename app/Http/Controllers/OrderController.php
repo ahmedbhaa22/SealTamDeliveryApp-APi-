@@ -12,13 +12,10 @@ use App\Order;
 use App\Driver;
 use App\Http\ViewModel\ResultVM;
 use App\Jobs\updateFireBase;
-<<<<<<< HEAD
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
 use Kreait\Firebase\Database;
-=======
 use Carbon\Carbon;
->>>>>>> 95fc374d012710560f25b99acb3e4a7e56c91b70
 class OrderController extends Controller
 {
 
@@ -106,21 +103,13 @@ class OrderController extends Controller
             $order = DB::table('orders')->where('driver_id', $request->driver_id)
              ->where('id', $request->order_id)->first();
 
-<<<<<<< HEAD
-            if($order){
-                if($order->driver_id != $request->driver_id ){
-                    $this->_result->IsSuccess = false;
-                       $this->_result->FaildReason = 'not-driver';
-                   return Response::json($this->_result,200);
-=======
-            if($order) 
+            if($order)
             {
                if($order->driver_id != $request->driver_id )
                  {
-                  $this->_result->IsSuccess = true;
+                  $this->_result->IsSuccess = false;
                   $this->_result->FaildReason = 'not-driver';
                   return Response::json($this->_result,200);
->>>>>>> 95fc374d012710560f25b99acb3e4a7e56c91b70
                 }
 
                 $oldStatus =$order->status;
@@ -136,7 +125,7 @@ class OrderController extends Controller
                 }
                 else {
 
-                    
+
                     if ($request->status == '2')
                     {
                       $update =  DB::table('orders')
@@ -163,7 +152,7 @@ class OrderController extends Controller
 
                       $Driver =Driver::where('user_id',$order->driver_id)
                       ->first();
-                      
+
                      $Driver->CurrentBalance += $order->deliveryCost;
                       if($Driver->CurrentBalance >= 100)
                       {
@@ -174,7 +163,7 @@ class OrderController extends Controller
                     }
 
                     $order = Order::find($request->order_id);
-                    updateFireBase::dispatch($order)->onQueue('firebase');
+                    $this->update_order_at_fireBase($order);
 
 
                      $this->_result->IsSuccess = true;
@@ -187,7 +176,7 @@ class OrderController extends Controller
             }
 
 
-              
+
 
          } // end change_order_status
 
@@ -293,6 +282,7 @@ public function get_current_order($driver_id) {
                             ->leftJoin('users','users.id', '=', 'orders.driver_id')
                             ->select('orders.id','orders.created_at','orders.updated_at','orders.status as status','deliveryCost','customerPhone','customerName','OrderNumber','orderDest','orderCost','users.name as DriverName',"drivers.telephone as DriverPhone","drivers.lat as Driverlat","drivers.lng as Driverlng","drivers.image as DriverImage",'deliveryCost','users.rate as DriverRate','orders.driverRate as OrderRate')
                             ->where('orders.resturant_id', $request->resturant)->whereDate('orders.created_at', date($request->date))
+                            ->orderBy('created_at','DESC')
                             ->get();
 
 
@@ -457,7 +447,22 @@ public function get_current_order($driver_id) {
           }// end get_resturant_rate
 
 
+ public function update_order_at_fireBase($order){
+    $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/sealteamdeliveryapp-firebase-adminsdk-yra65-b8ba7856bd.json');
+    $firebase = (new Factory)->withServiceAccount($serviceAccount)->withDatabaseUri('https://sealteamdeliveryapp.firebaseio.com')->create();
+    $database = $firebase->getDatabase();
+    if($order->status == '-1'|| $order->status == '-2' || $order->status == '4'){
+        $newOrder = $database
+        ->getReference('Orders/'.$order['resturant_id'].'/'.$order['id'])
+        ->set(null);
+    }
+    else {
+        $newOrder = $database
+        ->getReference('Orders/'.$order->resturant_id.'/'.$order->id.'/status')
+        ->set($order->status);
+    }
 
+ }
 
 
 

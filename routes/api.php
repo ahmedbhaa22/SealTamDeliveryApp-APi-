@@ -110,6 +110,8 @@ Route::get('home/all_resturants','HomeController@get_all_resturants')->middlewar
 
 Route::post('order/create','ResturantApi\CurrentOrdersController@CreateNewOrder')->middleware('cors');
 Route::post('order/Response','ResturantApi\CurrentOrdersController@OrderNotficationResponse')->middleware('cors');
+Route::post('order/orderPlus','ResturantApi\CurrentOrdersController@order_plus')->middleware('cors');
+
 
 /* order Apis */
 
