@@ -12,19 +12,14 @@ use App\Order;
 use App\Driver;
 use App\Http\ViewModel\ResultVM;
 use App\Jobs\updateFireBase;
-<<<<<<< HEAD
-=======
 
->>>>>>> e6f4d02693233b9bc1070cbc1101ec106df011d8
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
 use Kreait\Firebase\Database;
 use Carbon\Carbon;
-<<<<<<< HEAD
-=======
+
 use Illuminate\Support\Facades\Input;
 
->>>>>>> e6f4d02693233b9bc1070cbc1101ec106df011d8
 class OrderController extends Controller
 {
 
@@ -246,21 +241,16 @@ class OrderController extends Controller
             $order = DB::table('orders')->where('driver_id', $request->driver_id)
              ->where('id', $request->order_id)->first();
 
-<<<<<<< HEAD
-            if($order)
-=======
+
             if($order) 
->>>>>>> e6f4d02693233b9bc1070cbc1101ec106df011d8
+
             {
                if($order->driver_id != $request->driver_id )
                  {
                   $this->_result->IsSuccess = false;
                   $this->_result->FaildReason = 'not-driver';
                   return Response::json($this->_result,200);
-<<<<<<< HEAD
-=======
 
->>>>>>> e6f4d02693233b9bc1070cbc1101ec106df011d8
                 }
 
                 $oldStatus =$order->status;

@@ -257,5 +257,34 @@ class AdminController extends Controller
                  return Response::json($this->_result,200);
              }
          }
+
+         public function change_user_password(Request $request) {
+
+            $validation=Validator::make($request->all(),
+           [
+            'user_id'=>'required|numeric',
+            'newpassword'=>'required|string|min:5',
+
+           ]);
+
+           if($validation->fails())
+           {
+              $this->_result->IsSuccess = false;
+              $this->_result->FaildReason =  $validation->errors()->first();
+              return Response::json($this->_result,200);
+
+           }
+
+            $newpass =Hash::make($request->newpassword);
+
+            $update =  DB::table('users')
+                  ->where('id',$request->user_id)
+                  ->update(['password' => $newpass ]);
+
+              $this->_result->IsSuccess = true;
+              $this->_result->Data = $update;
+              return Response::json($this->_result,200);
+
+         }// end change_user_password
 }
 
