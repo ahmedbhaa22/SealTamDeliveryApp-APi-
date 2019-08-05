@@ -156,7 +156,7 @@ class CurrentOrdersController extends Controller
                         'ResturantLocation'=>$resturant->location,
                         'ResturantLat'=>$resturant->lat,
                         'Resturantlng'=>$resturant->lng,
-                        'OrderId'=>$order->order_id,
+                        'OrderId'=>$order->id,
                         'OrderLocation'=>$order->orderDest,
                         'OrderCost'=>$order->orderCost,
                     ]
@@ -340,7 +340,7 @@ class CurrentOrdersController extends Controller
                         $deviceToken
                 ),
                 'data' => array (
-                        'NotIficationType'=>$message,
+                        'NotIficationType'=>'orderaccepted',
                         'Data'=>[
                             'OrderId'=>$order->id,
                         ]

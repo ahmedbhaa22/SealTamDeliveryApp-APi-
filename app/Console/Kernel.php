@@ -4,7 +4,7 @@ namespace App\Console;
 
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-
+use DB;
 class Kernel extends ConsoleKernel
 {
     /**
@@ -24,8 +24,16 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
+
+        $newTime = strtotime('-5 minutes');
+        $toBeDelted  =  date('Y-m-d H:i:s', $newTime);
+
+        DB::table('jobs')->where('created_at', '<=', $toBeDelted)->delete();
+        if (stripos((string) shell_exec('ps xf | grep \'[q]ueue:work\''), 'artisan queue:work') === false) {
+            $schedule->command('queue:work  --tries=30 --queue=firebase')->everyMinute()->appendOutputTo(storage_path() . '/logs/scheduler.log');
+        }
+
+
     }
 
     /**

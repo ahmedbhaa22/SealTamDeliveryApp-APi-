@@ -46,7 +46,7 @@ class checkIfOrderDone implements ShouldQueue
                 $order->save();
 
                 updateFireBase::dispatch($order)->onQueue('firebase');
-                $this->SendNotification($Driver->deviceToken,$order,'orderaccepted');
+                $this->SendNotification(DB::table('drivers')->where('user_id',$selectd_driver)->first()->deviceToken,$order,'orderaccepted');
             }
             else{
 

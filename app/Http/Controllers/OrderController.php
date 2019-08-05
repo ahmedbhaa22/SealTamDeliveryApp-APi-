@@ -12,19 +12,13 @@ use App\Order;
 use App\Driver;
 use App\Http\ViewModel\ResultVM;
 use App\Jobs\updateFireBase;
-<<<<<<< HEAD
-=======
 
->>>>>>> e6f4d02693233b9bc1070cbc1101ec106df011d8
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
 use Kreait\Firebase\Database;
 use Carbon\Carbon;
-<<<<<<< HEAD
-=======
 use Illuminate\Support\Facades\Input;
 
->>>>>>> e6f4d02693233b9bc1070cbc1101ec106df011d8
 class OrderController extends Controller
 {
 
@@ -42,7 +36,7 @@ class OrderController extends Controller
        $resturant_id = Input::get('resturant_id');
 
 //Case 1
-      if($driver_id == NULL && $resturant_id == NULL) 
+      if($driver_id == NULL && $resturant_id == NULL)
         {
              $allorders = DB::table('orders')->orderBy('created_at', 'desc')->paginate(12);
 
@@ -50,7 +44,7 @@ class OrderController extends Controller
              $canceld_orders =  DB::table('orders')->where('status','-2')->count();
              $nodriver_orders =  DB::table('orders')->where('status','-1')->count();
              $pending_orders =  DB::table('orders')->where('status','0')->count();
-             
+
 
 
              if(count($allorders) > 0) {
@@ -62,7 +56,7 @@ class OrderController extends Controller
                 'nodriver_orders'=>$nodriver_orders,
                 'pending_orders'=>$pending_orders,
                 'AllOrders'=>$allorders
-                
+
               ];
                return Response::json($this->_result,200);
 
@@ -90,7 +84,7 @@ class OrderController extends Controller
                 'nodriver_orders'=>$nodriver_orders,
                 'pending_orders'=>$pending_orders,
                 'AllOrders'=>$allorders
-                
+
               ];
                return Response::json($this->_result,200);
 
@@ -111,7 +105,7 @@ class OrderController extends Controller
              $pending_orders =  DB::table('orders')->where('driver_id', $driver_id)->where('status','0')->count();
 
           if(count($allorders) > 0) {
-               
+
                $this->_result->IsSuccess = true;
                $this->_result->Data = [
                 'Completed_Orders '=>$Completed_Orders ,
@@ -119,7 +113,7 @@ class OrderController extends Controller
                 'nodriver_orders'=>$nodriver_orders,
                 'pending_orders'=>$pending_orders,
                 'AllOrders'=>$allorders
-                
+
               ];
                return Response::json($this->_result,200);
 
@@ -146,7 +140,7 @@ class OrderController extends Controller
              ->count();
 
           if(count($allorders) > 0) {
-               
+
                $this->_result->IsSuccess = true;
                $this->_result->Data = [
                 'Completed_Orders '=>$Completed_Orders ,
@@ -154,7 +148,7 @@ class OrderController extends Controller
                 'nodriver_orders'=>$nodriver_orders,
                 'pending_orders'=>$pending_orders,
                 'AllOrders'=>$allorders
-                
+
               ];
                return Response::json($this->_result,200);
 
@@ -246,21 +240,14 @@ class OrderController extends Controller
             $order = DB::table('orders')->where('driver_id', $request->driver_id)
              ->where('id', $request->order_id)->first();
 
-<<<<<<< HEAD
+
             if($order)
-=======
-            if($order) 
->>>>>>> e6f4d02693233b9bc1070cbc1101ec106df011d8
             {
                if($order->driver_id != $request->driver_id )
                  {
                   $this->_result->IsSuccess = false;
                   $this->_result->FaildReason = 'not-driver';
                   return Response::json($this->_result,200);
-<<<<<<< HEAD
-=======
-
->>>>>>> e6f4d02693233b9bc1070cbc1101ec106df011d8
                 }
 
                 $oldStatus =$order->status;
@@ -291,7 +278,7 @@ class OrderController extends Controller
                        $update =  DB::table('orders')
                        ->where('id', $request->order_id)
                        ->update(['status' => $request->status, 'received_at'=>Carbon::now()]);
-                    
+
                     }
 
 
@@ -409,7 +396,7 @@ public function get_current_order($driver_id) {
 
               $this->_result->IsSuccess = true;
               $this->_result->Data =['OrdersCount'=>'','CurrentBalance'=>$balance ,'orderHistory'=>[]];
-        
+
               return Response::json($this->_result,200);
           }
 
@@ -436,7 +423,7 @@ public function get_current_order($driver_id) {
             $orderHistory =  DB::table('orders')
                             ->leftJoin('drivers','drivers.user_id', '=', 'orders.driver_id')
                             ->leftJoin('users','users.id', '=', 'orders.driver_id')
-                            ->select('orders.id','orders.created_at','orders.updated_at','orders.status as status','deliveryCost','customerPhone','customerName','OrderNumber','orderDest','orderCost','users.name as DriverName',"drivers.telephone as DriverPhone","drivers.lat as Driverlat","drivers.lng as Driverlng","drivers.image as DriverImage",'deliveryCost','users.rate as DriverRate','orders.driverRate as OrderRate')
+                            ->select('orders.id','orders.resturant_id','orders.created_at','orders.updated_at','orders.status as status','deliveryCost','customerPhone','customerName','OrderNumber','orderDest','orderCost','users.name as DriverName',"drivers.telephone as DriverPhone","drivers.lat as Driverlat","drivers.lng as Driverlng","drivers.image as DriverImage",'deliveryCost','users.rate as DriverRate','orders.driverRate as OrderRate')
                             ->where('orders.resturant_id', $request->resturant)->whereDate('orders.created_at', date($request->date))
                             ->orderBy('created_at','DESC')
                             ->get();
