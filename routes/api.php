@@ -45,6 +45,7 @@ Route::get('admin/get_all_admin','AdminController@get_all_admin')->middleware('c
 Route::get('admin/get_admin/{id}','AdminController@get_admin')->middleware('cors','auth:api');
 Route::post('admin/login','AdminController@login')->middleware('cors');
 Route::post('admin/changepassword','UsersController@edit_pass')->middleware('cors');
+Route::post('admin/change/userPassword','AdminController@change_user_password');
 
 
 //End Admin Routes
@@ -72,6 +73,7 @@ Route::post('driver/edit/{id}','DriverController@Edit_Driver')->middleware('cors
 Route::get('driver/delete-driver/{id}','DriverController@destroy')->middleware('cors','auth:api');
 Route::get('driver/all_drivers','DriverController@get_all_drivers')->middleware('cors','auth:api');
 Route::get('driver/get_driver/{id}','DriverController@get_driver')->middleware('cors','auth:api');
+Route::get('driver/resetBalance/{id}','DriverController@reset_balance');
 /*Drivers api routes*/
 Route::post('driver/login','DriverController@login');
 Route::post('driver/addLocation','DriverController@add_location');
@@ -117,6 +119,13 @@ Route::post('order/orderPlus','ResturantApi\CurrentOrdersController@order_plus')
 
 //Route::get('orders/{driver_id}/{resturant_id}','OrderController@all_orders');
 Route::get('orders','OrderController@all_orders');
+
+Route::post('order/orderPlus','ResturantApi\CurrentOrdersController@order_plus')->middleware('cors');
+
+
+//Route::get('orders/{driver_id}/{resturant_id}','OrderController@all_orders');
+Route::get('orders','OrderController@all_orders');
+
 
 /* order Apis */
 

@@ -439,7 +439,16 @@ class DriverController extends Controller
          } // end change_availability
 
 
+  public function reset_balance ($driver_id) {
 
+            $update =  DB::table('drivers')
+                  ->where('user_id', $driver_id)
+                  ->update(['CurrentBalance' => '0','canReceiveOrder' => '1']);
+             $this->_result->IsSuccess = true;
+             $this->_result->Data = $update;
+             return Response::json($this->_result,200);
+
+         }//end reset_balance
 
 
 }

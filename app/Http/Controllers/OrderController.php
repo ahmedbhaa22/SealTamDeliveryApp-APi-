@@ -17,6 +17,7 @@ use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
 use Kreait\Firebase\Database;
 use Carbon\Carbon;
+
 use Illuminate\Support\Facades\Input;
 
 class OrderController extends Controller
@@ -241,13 +242,16 @@ class OrderController extends Controller
              ->where('id', $request->order_id)->first();
 
 
+
             if($order)
+
             {
                if($order->driver_id != $request->driver_id )
                  {
                   $this->_result->IsSuccess = false;
                   $this->_result->FaildReason = 'not-driver';
                   return Response::json($this->_result,200);
+
                 }
 
                 $oldStatus =$order->status;
