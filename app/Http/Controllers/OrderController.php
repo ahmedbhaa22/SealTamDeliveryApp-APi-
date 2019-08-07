@@ -354,7 +354,7 @@ public function get_current_order($driver_id) {
 
 
 
-                 public function  get_history(Request $request) {
+     public function  get_history(Request $request) {
 
 
             $validation=Validator::make($request->all(),

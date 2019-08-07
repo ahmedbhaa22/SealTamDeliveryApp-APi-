@@ -21,6 +21,7 @@ use App\Driver;
 use Auth;
 use Route;
 use App\Http\ViewModel\ResultVM;
+use App\Setting;
 
 
 class DriverController extends Controller
@@ -449,6 +450,59 @@ class DriverController extends Controller
              return Response::json($this->_result,200);
 
          }//end reset_balance
+
+         public function change_driver_password(Request $request) {
+
+            $validation=Validator::make($request->all(),
+           [
+            'driver_id'=>'required|numeric',
+            'oldpassword'=>'required|string|min:5',
+            'password'=>'required|min:5|different:oldpassword',
+            'confirm-password' => 'required_with:password|same:password|min:5',
+         //   'password' => 'nullable|required_with:password_confirmation|string|confirmed',
+
+           ]);
+
+           if($validation->fails())
+           {
+              $this->_result->IsSuccess = false;
+              $this->_result->FaildReason =  $validation->errors()->first();
+              return Response::json($this->_result,200);
+
+           }
+
+           $user=User::where('id',$request->driver_id)->first();
+
+           if (Hash::check($request->oldpassword, $user->password)) { 
+           
+               $update =  DB::table('users')
+                  ->where('id',$request->driver_id)
+                  ->update(['password' => Hash::make($request->password) ]);
+
+             $this->_result->IsSuccess = true;
+             $this->_result->Data = $update;
+             return Response::json($this->_result,200);
+
+            } else {
+
+                $this->_result->IsSuccess = false;
+                 $this->_result->FaildReason = "wrong Old password";
+                 return Response::json($this->_result,200);
+            }
+
+
+         }// end change_user_password
+
+        public function get_app_version() {
+
+            $setting  = DB::table('settings')
+                ->select('id','key','value')
+                ->first();
+
+             $this->_result->IsSuccess = true;
+             $this->_result->Data = $setting;
+             return Response::json($this->_result,200);
+        }
 
 
 }

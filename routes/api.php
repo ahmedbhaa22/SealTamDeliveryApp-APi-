@@ -82,6 +82,9 @@ Route::get('driver/MakeOnline/{id}','DriverController@make_online');
 Route::get('driver/MakeOffline/{id}','DriverController@make_offline');
 Route::get('driver/MakeOntrip/{id}','DriverController@make_ontrip');
 Route::post('driver/changeAvailability','DriverController@change_availability');
+Route::post('driver/changePassword','DriverController@change_driver_password');
+Route::get('driver/appVersion','DriverController@get_app_version');
+
 
 
 //End Drivers Routes
@@ -145,6 +148,17 @@ Route::post('order/RateResturant','OrderController@rate_resturant');
 
 
 //End Orders Routes
+/* =================================================================*/
+
+
+
+//Start Setting Routes
+/* =================================================================*/
+Route::post('setting/add','SettingController@add_setting');
+Route::post('setting/edit','SettingController@edit_setting');
+
+
+//end Setting Routes
 /* =================================================================*/
 
 Route::get('/test', function (Request $request) {
