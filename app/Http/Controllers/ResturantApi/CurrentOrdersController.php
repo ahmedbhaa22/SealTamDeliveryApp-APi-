@@ -36,7 +36,7 @@ class CurrentOrdersController extends Controller
             'orderCost'=>'required|numeric|max:500000',
             'customerPhone'=>'required',
             'customerName'=>'required',
-            'OrderNumber'=>'required',
+            'OrderNumber'=>'sometimes|nullable',
             'orderDest'=>'required',
             'expectedDeliveryCost'=>'required|numeric|max:500000',
         ]);
@@ -63,6 +63,7 @@ class CurrentOrdersController extends Controller
                 foreach($drivers as $driver){
                     $this->SendNotification($driver->deviceToken,$order,$resturant,'neworder');
                     $this->AddDriverOrder($driver->user_id,$order->id);
+                    $this->update_busy_status($driver->user_id);
                 }
 
             }
@@ -134,7 +135,7 @@ class CurrentOrdersController extends Controller
 
    public function SelectNearestDriver($lat,$lng){
 
-    $EcludianDistanceQuery ="SELECT `user_id`,`deviceToken`,SQRT( POWER(`lat`-$lat,2) + POWER(`lng`-$lng, 2) ) as DIstance FROM `drivers`  WHERE `availability`='on' AND `canReceiveOrder` = '1' AND  `deviceToken` IS NOT NULL ORDER BY DIstance ASC LIMIT 10   ;";
+    $EcludianDistanceQuery ="SELECT `user_id`,`deviceToken`,SQRT( POWER(`lat`-$lat,2) + POWER(`lng`-$lng, 2) ) as DIstance FROM `drivers`  WHERE `availability`='on' AND `canReceiveOrder` = '1' AND `busy`= false AND  `deviceToken` IS NOT NULL ORDER BY DIstance ASC LIMIT 10   ;";
 
     return DB::select($EcludianDistanceQuery);
 
@@ -208,9 +209,11 @@ class CurrentOrdersController extends Controller
         }
         if($request->responseStatus=='-1'){
             $this->UpdateOrderDriverTable($request->order_id,$request->driver_id,'-1');
+            $this->update_busy_status($request->driver_id, false);
         }
         else if($request->responseStatus=='1'){
             $this->UpdateOrderDriverTable($request->order_id,$request->driver_id,'1',$request->delivrycost);
+        
         }
 
         $NumberOfDriversDidnotRespond = Order_driver_Table::where('order_id',$request->order_id)->where('status','0')->count();
@@ -228,6 +231,14 @@ class CurrentOrdersController extends Controller
 
     public function UpdateOrderDriverTable($order_id,$driver_id,$status,$cost=null){
         Order_driver_Table::where('order_id',$order_id)->where('driver_id',$driver_id)->update(['status'=> $status,'cost'=>$cost]);
+    }
+
+    public function update_busy_status ($driver_id,$busy_status=true)
+    {
+        DB::table('drivers')
+        ->where('drivers.user_id',$driver_id)
+        ->update(['busy' => $busy_status]);
+        
     }
 
     public function Assignorder($order){
@@ -270,7 +281,7 @@ class CurrentOrdersController extends Controller
         ->where('users.UserType','driver')->where('drivers.user_id',$order->driver_id)
         ->first();
 
-        if($Driver->CurrentBalance > 100){
+        if($Driver->CurrentBalance > 400){
             $this->_result->IsSuccess = false;
             $this->_result->FaildReason =  " This Driver Cannot Accept Any More Order For Now";
             return Response::json($this->_result,200);

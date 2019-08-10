@@ -84,6 +84,8 @@ Route::get('driver/MakeOntrip/{id}','DriverController@make_ontrip');
 Route::post('driver/changeAvailability','DriverController@change_availability');
 Route::post('driver/changePassword','DriverController@change_driver_password');
 Route::get('driver/appVersion','DriverController@get_app_version');
+Route::post('driver/changBusy','DriverController@change_busy_status');
+Route::get('driver/getData/{id}','DriverController@get_driver_data');
 
 
 

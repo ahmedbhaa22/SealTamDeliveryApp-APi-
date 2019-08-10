@@ -246,7 +246,7 @@ class OrderController extends Controller
             if($order)
 
             {
-               if($order->driver_id != $request->driver_id )
+               if($order->driver_id != $request->driver_id)
                  {
                   $this->_result->IsSuccess = false;
                   $this->_result->FaildReason = 'not-driver';
@@ -297,7 +297,7 @@ class OrderController extends Controller
                       ->first();
 
                      $Driver->CurrentBalance += $order->deliveryCost;
-                      if($Driver->CurrentBalance >= 100)
+                      if($Driver->CurrentBalance >= 400)
                       {
                           $Driver->canReceiveOrder = '0';
 

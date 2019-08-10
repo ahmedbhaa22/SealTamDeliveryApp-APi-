@@ -20,6 +20,7 @@ class CreateDriversTable extends Migration
             $table->string('frontId')->nullable();
             $table->string('backId')->nullable();
             $table->string('telephone');
+            $table->boolean('busy')->default(0);
 
             $table->unsignedBigInteger('identity')->unique()->nullable();
 

@@ -11,6 +11,8 @@ use App\Order;
 use App\Jobs\updateFireBase;
 use App\Driver;
 use DB;
+use App\Order_driver as Order_driver_Table;
+
 class checkIfOrderDone implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -34,10 +36,12 @@ class checkIfOrderDone implements ShouldQueue
     public function handle()
     {
         $order =$this->order;
+
         if($this->order->status == 0){
             $EcludianDistanceQuery ="SELECT `driver_id`,cost,SQRT( POWER(`cost`- $order->expectedDeliveryCost,2) ) as DIstance FROM `order_drivers`  WHERE `order_id`='$order->id' AND `status` = '1' ORDER BY DIstance ASC , cost ASC LIMIT 10;";
              $costs  = DB::select($EcludianDistanceQuery);
-             if(count($costs) > 0){
+
+             if(count($costs) > 0) {
                 $selectd_driver = $costs[0]->driver_id;
                 $order->deliveryCost = $costs[0]->cost;
                 $order->companyProfit = $costs[0]->cost *.25;
@@ -45,9 +49,24 @@ class checkIfOrderDone implements ShouldQueue
                 $order->status = '1';
                 $order->save();
 
+                $unluckyDrivers = Order_driver_Table::where('order_id',$order->id)->where('status', '1')
+                ->where('driver_id', '!=' , $order->driver_id)->get();
+                
+                foreach($unluckyDrivers as $unlucky) {
+                $this->update_busy_status($unlucky->driver_id, false);
+                }
+
+                $DriversDidnotRespond = Order_driver_Table::where('order_id',$order->id)->where('status','0')->get();
+
+                foreach($DriversDidnotRespond as $notResponded) {
+                $this->update_busy_status($notResponded->driver_id, false);
+                }
+
+ 
                 updateFireBase::dispatch($order)->onQueue('firebase');
                 $this->SendNotification(DB::table('drivers')->where('user_id',$selectd_driver)->first()->deviceToken,$order,'orderaccepted');
             }
+
             else{
 
                 $order->status = '-1';
@@ -58,6 +77,14 @@ class checkIfOrderDone implements ShouldQueue
         }
 
     }
+
+     public function update_busy_status ($driver_id,$busy_status=true)
+    {
+        DB::table('drivers')
+        ->where('drivers.user_id',$driver_id)
+        ->update(['busy' => $busy_status]);
+        
+    }// end update_busy_status
 
 
      function SendNotification($deviceToken,$order,$message){

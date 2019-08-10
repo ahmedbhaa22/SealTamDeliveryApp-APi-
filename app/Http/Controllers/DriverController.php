@@ -491,7 +491,7 @@ class DriverController extends Controller
             }
 
 
-         }// end change_user_password
+         }// end change_driver_password
 
         public function get_app_version() {
 
@@ -502,7 +502,65 @@ class DriverController extends Controller
              $this->_result->IsSuccess = true;
              $this->_result->Data = $setting;
              return Response::json($this->_result,200);
-        }
+        }// end get app version 
+
+
+         public function change_busy_status(Request $request) {
+
+            $validation=Validator::make($request->all(),
+             [
+
+                'driver_id'     =>'required|numeric',
+                'busy'   =>'required|numeric|in:1,0',
+
+             ]);
+
+             if($validation->fails())
+             {
+                $this->_result->IsSuccess = false;
+                $this->_result->FaildReason =  $validation->errors()->first();
+                return Response::json($this->_result,200);
+             }
+
+
+              $update =  DB::table('drivers')
+                  ->where('user_id', $request->driver_id)
+                  ->update(['busy' => $request->busy]);
+
+              $this->_result->IsSuccess = true;
+              $this->_result->Data = $update;
+             return Response::json($this->_result,200);
+
+         } // end change_busy_status
+
+
+         public function get_driver_data($driver_id) {
+
+            $driverData =  DB::table('drivers')
+                 ->leftJoin('users','drivers.user_id', '=', 'users.id')
+                  ->select('users.name','users.email','users.rate','users.Status','drivers.telephone','drivers.image','drivers.CurrentBalance','drivers.canReceiveOrder','drivers.busy','drivers.availability','drivers.user_id as Driver_Id')
+                  ->where('drivers.user_id', $driver_id)
+                  ->get();
+
+
+            if(count($driverData) > 0){
+
+
+              $this->_result->IsSuccess = true;
+              $this->_result->Data =['CurrentOrders'=>$driverData];
+             return Response::json($this->_result,200);
+         } else {
+
+              $this->_result->IsSuccess = false;
+              $this->_result->FaildReason = "No Data For This ID";
+              return Response::json($this->_result,200);
+
+         }
+
+
+
+         } // end get_driver_data
+
 
 
 }
