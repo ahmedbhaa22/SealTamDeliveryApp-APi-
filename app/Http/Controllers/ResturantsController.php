@@ -209,4 +209,56 @@ class ResturantsController extends Controller
             return Response::json($this->_result, 200);
         }
     }
+      public function change_resturant_password(Request $request) {
+
+            $validation=Validator::make($request->all(),
+           [
+            'restutant_id'=>'required|numeric',
+            'oldpassword'=>'required|string',
+            'password'=>'required|min:5|different:oldpassword',
+            'confirm_password' => 'required_with:password|same:password|min:5',
+         //   'password' => 'nullable|required_with:password_confirmation|string|confirmed',
+
+           ]);
+
+           if($validation->fails())
+           {
+              $this->_result->IsSuccess = false;
+              $this->_result->FaildReason =  $validation->errors()->first();
+              return Response::json($this->_result,200);
+
+           }
+
+           $user=User::where('id',$request->restutant_id)->first();
+
+           if (Hash::check($request->oldpassword, $user->password)) { 
+           
+               $update =  DB::table('users')
+                  ->where('id',$request->restutant_id)
+                  ->update(['password' => Hash::make($request->password) ]);
+
+             $this->_result->IsSuccess = true;
+             $this->_result->Data = $update;
+             return Response::json($this->_result,200);
+
+            } else {
+
+                $this->_result->IsSuccess = false;
+                 $this->_result->FaildReason = trans("messages.wrongemailorpassword");
+                 return Response::json($this->_result,200);
+            }
+
+
+         }
+         
+          public function get_app_version() {
+
+            $setting  = DB::table('settings')
+                ->select('id','key','value')
+                ->where('key','ResturantAppVersion')->first();
+
+             $this->_result->IsSuccess = true;
+             $this->_result->Data = $setting;
+             return Response::json($this->_result,200);
+        }// end get app version 
 }

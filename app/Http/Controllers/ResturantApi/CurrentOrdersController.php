@@ -17,6 +17,8 @@ use Kreait\Firebase\Database;
 use DB;
 use App\Jobs\checkIfOrderDone;
 use App\Jobs\updateFireBase;
+use App\Setting;
+use  App\Events\drivers_status;
 
 class CurrentOrdersController extends Controller
 {
@@ -36,7 +38,7 @@ class CurrentOrdersController extends Controller
             'orderCost'=>'required|numeric|max:500000',
             'customerPhone'=>'required',
             'customerName'=>'required',
-            'OrderNumber'=>'required',
+            'OrderNumber'=>'sometimes|nullable',
             'orderDest'=>'required',
             'expectedDeliveryCost'=>'required|numeric|max:500000',
         ]
@@ -52,7 +54,7 @@ class CurrentOrdersController extends Controller
         ->where('users.UserType', 'resturant')->where('resturants.user_id', $request->resturant_id)
         ->first();
         //Search For Nearest Drivers,
-        $drivers = $this->SelectNearestDriver($resturant->lat, $resturant->lng);
+        $drivers = $this->SelectNearestDriver($resturant->user_id, $resturant->lat, $resturant->lng);
         //Add Order And OrderDetails TO DataBase
         if (count($drivers) > 0) {
             DB::beginTransaction();
@@ -62,6 +64,7 @@ class CurrentOrdersController extends Controller
                 foreach ($drivers as $driver) {
                     $this->SendNotification($driver->deviceToken, $order, $resturant, 'neworder');
                     $this->AddDriverOrder($driver->user_id, $order->id);
+                    $this->update_busy_status($driver->user_id);
                 }
             } catch (Exception $e) {
                 DB::rollback();
@@ -98,7 +101,7 @@ class CurrentOrdersController extends Controller
             return Response::json($this->_result, 200);
         }
 
-        $id = $this->dispatch((new checkIfOrderDone($order))->onQueue('firebase')->delay(now()->addSeconds(552)));
+        $id = $this->dispatch((new checkIfOrderDone($order))->onQueue('firebase')->delay(now()->addSeconds(70)));
         $order->JobId = $id;
         $order->save();
 
@@ -126,11 +129,19 @@ class CurrentOrdersController extends Controller
 
 
 
-    public function SelectNearestDriver($lat, $lng)
+    public function SelectNearestDriver($resurant_id, $lat, $lng)
     {
-        $EcludianDistanceQuery ="SELECT `user_id`,`deviceToken`,SQRT( POWER(`lat`-$lat,2) + POWER(`lng`-$lng, 2) ) as DIstance FROM `drivers`  WHERE `availability`='on' AND `canReceiveOrder` = '1' AND  `deviceToken` IS NOT NULL ORDER BY DIstance ASC LIMIT 10   ;";
+        $Max_Drivers = Setting::find(4)->value;
+        $Zone_Size = Setting::find(5)->value;
 
-        return DB::select($EcludianDistanceQuery);
+        $q = "SELECT  mn.user_id , `availability`, `canReceiveOrder`,`busy`,`deviceToken`,ACOS(COS(RADIANS($lat)) * COS(RADIANS(mn.lat)) * COS(RADIANS(mn.lng) - RADIANS($lng)) + SIN(RADIANS($lat)) * SIN(radians(mn.lat))) as DIstance
+        FROM    resturants m
+        JOIN    drivers mn
+        ON      ACOS(COS(RADIANS($lat)) * COS(RADIANS(mn.lat)) * COS(RADIANS(mn.lng) - RADIANS($lng)) + SIN(RADIANS($lat)) * SIN(radians(mn.lat))) <= $Zone_Size / 6371.0
+        WHERE `m`.`user_id`=$resurant_id And `availability`='on' AND `canReceiveOrder` = '1'  AND `busy`= 0 AND `deviceToken` IS NOT NULL ORDER BY DIstance ASC LIMIT $Max_Drivers";
+        // $EcludianDistanceQuery ="SELECT `user_id`,`deviceToken`,SQRT( POWER(`lat`-$lat,2) + POWER(`lng`-$lng, 2) ) as DIstance FROM `drivers`  WHERE `availability`='on' AND `canReceiveOrder` = '1'  AND `busy`= 0 AND `deviceToken` IS NOT NULL ORDER BY DIstance ASC LIMIT 10   ;";
+
+        return DB::select($q);
     }
 
     public function SendNotification($deviceToken, $order, $resturant, $message)
@@ -189,7 +200,7 @@ class CurrentOrdersController extends Controller
         $validation=Validator::make(
             $request->all(),
             [
-            'driver_id'=>'required|exists:users,id|exists:drivers,user_id',
+            'driver_id'=>'required|exists:users,id',
             'delivrycost'=>'numeric|max:500000',
             'responseStatus'=>'required',
             'order_id'=>"required|exists:orders,id"
@@ -202,6 +213,7 @@ class CurrentOrdersController extends Controller
         }
         if ($request->responseStatus=='-1') {
             $this->UpdateOrderDriverTable($request->order_id, $request->driver_id, '-1');
+            $this->update_busy_status($request->driver_id, false);
         } elseif ($request->responseStatus=='1') {
             $this->UpdateOrderDriverTable($request->order_id, $request->driver_id, '1', $request->delivrycost);
         }
@@ -221,6 +233,15 @@ class CurrentOrdersController extends Controller
     public function UpdateOrderDriverTable($order_id, $driver_id, $status, $cost=null)
     {
         Order_driver_Table::where('order_id', $order_id)->where('driver_id', $driver_id)->update(['status'=> $status,'cost'=>$cost]);
+    }
+    public function update_busy_status($driver_id, $busy_status=true)
+    {
+        $update = DB::table('drivers')
+        ->where('drivers.user_id', $driver_id)
+        ->update(['busy' => ($busy_status) ? 1:0]);
+        if ($update >0) {
+            event(new drivers_status($driver_id));
+        }
     }
 
     public function Assignorder($order)
@@ -242,7 +263,6 @@ class CurrentOrdersController extends Controller
             'customerPhone'=>'required',
             'order_id'=>'required|exists:orders,id',
             'customerName'=>'required',
-            'OrderNumber'=>'required',
             'orderDest'=>'required',
             'deliveryCost'=>'required|numeric|max:500000',
         ]
@@ -264,7 +284,7 @@ class CurrentOrdersController extends Controller
         ->where('users.UserType', 'driver')->where('drivers.user_id', $order->driver_id)
         ->first();
 
-        if ($Driver->CurrentBalance > 100) {
+        if ($Driver->CurrentBalance >= 4000) {
             $this->_result->IsSuccess = false;
             $this->_result->FaildReason =  trans('messages.YouCannotAddOrdersForThisDriver');
             return Response::json($this->_result, 200);
@@ -293,7 +313,7 @@ class CurrentOrdersController extends Controller
                 'status'=>'1',
                 ]);
 
-
+            $this->update_busy_status($order->driver_id);
             $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/sealteamdeliveryapp-firebase-adminsdk-yra65-b8ba7856bd.json');
             $firebase = (new Factory)->withServiceAccount($serviceAccount)->withDatabaseUri('https://sealteamdeliveryapp.firebaseio.com')->create();
             $database = $firebase->getDatabase();

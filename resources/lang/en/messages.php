@@ -12,7 +12,21 @@ return [
     | these language lines according to your application's requirements.
     |
     */
+    /*
+        Global Messages
+    */
+    "Globale"=>[
+        "InvalidId"=>"Invalid Id",
+        "Saved"=>"Saved SuccessFully",
+        "Active"=>" Active",
+        "maxNumberExeeded"=>"Max Number Of Driver exceeded",
 
+        "NotActive"=>"Not Active"
+     ],
+     "Auth"=>[
+        "NotActive"=>"User Not Active"
+    ],
+    //
     'wrongemailorpassword' => 'wrong email or password',
     'NoDriverAvailAbleToAcceptThisRequest'=>"No Driver AvailAble To Accept This Request",
     'YouCannotAddOrdersForThisDriver'=>"You Cannot Add Orders ForThis Driver",

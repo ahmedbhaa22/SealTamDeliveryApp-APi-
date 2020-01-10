@@ -16,3 +16,20 @@ use Illuminate\Foundation\Inspiring;
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->describe('Display an inspiring quote');
+
+use  App\Events\drivers_status;
+
+Artisan::command('DriverOff', function () {
+
+        $newTime = strtotime('-120 minutes');
+        $toBeOffline  =  date('Y-m-d H:i:s', $newTime);
+        
+        $drivers =  DB::table('drivers')->where('updated_at', '<=', $toBeOffline)->where('availability','on')->get();
+       
+       
+        foreach($drivers as $driver){
+            DB::table('drivers')->where('user_id', $driver->user_id)->update(['availability'=>'off']);
+            event(new drivers_status($driver->user_id));
+
+        }
+});

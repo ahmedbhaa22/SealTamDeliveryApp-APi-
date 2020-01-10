@@ -15,10 +15,10 @@ class CreateOrdersTable extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->enum('status',['-2','-1','0','1','2','3','4','5'])->default('0');
+            $table->enum('status',['-2','-1','0','1','2','3','4'])->default('0');
             $table->string('customerPhone');
             $table->string('customerName');
-            $table->string('OrderNumber');
+            $table->string('OrderNumber')->nullable();
             $table->string('JobId')->nullable();
             $table->longtext('orderDest');
             $table->double('orderCost', 8, 2);

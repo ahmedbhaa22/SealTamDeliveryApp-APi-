@@ -37,11 +37,17 @@ class HomeController extends Controller
         // $end   = Carbon::now();
         // $totalCost = DB::table('orders')->where('status','4')->whereBetween('created_at',[$start,$end])->sum('orders.deliveryCost');
 
-         $totalCost = DB::table('orders')->where('status','4')->whereMonth('created_at', Carbon::now()->month)->sum('orders.deliveryCost');
-
-
+         $totalCost = DB::table('orders')->where('status','4')->whereYear('created_at',  Carbon::now()->year)->whereMonth('created_at', Carbon::now()->month)->where('resturant_id','<>',1454)->sum('orders.companyProfit');
+        
+         $totalCostall = DB::table('orders')->where('status','4')->where('resturant_id','<>',1454)->sum('orders.companyProfit');
+        
+         $incomeReport = DB::table('orders')->select(DB::raw("SUM(`companyProfit`) as income"),DB::raw("MONTH(`created_at`) as month"))->groupBy("month")->where('status','4')->whereYear('created_at',  Carbon::now()->year)->where('orders.resturant_id','<>','1454')->get();
+        
+         $orderReportThisYear = DB::table('orders')->select('status',DB::raw("count(`status`) as count"))->groupBy("status")->whereYear('created_at',  Carbon::now()->year)->where('resturant_id','<>','1454')->get();
+           $orderReportThismonth = DB::table('orders')->select('status',DB::raw("count(`status`) as count"))->whereNotIn('resturant_id', [1454])->groupBy("status")->whereMonth('created_at',  Carbon::now()->month)->whereYear('created_at',  Carbon::now()->year)->get();
+        
  		 $this->_result->IsSuccess = true;
-         $this->_result->Data = ['admins'=>$admins, 'drivers'=>$drivers,'resturants'=>$resturants,'totalCost'=>$totalCost];
+         $this->_result->Data = ['admins'=>$admins, 'drivers'=>$drivers,'resturants'=>$resturants,'profitThisMonth'=>$totalCost,"profitoverall"=>$totalCostall,'income'=>$incomeReport,'orderReportThisYear'=>$orderReportThisYear,'orderReportThismonth'=>$orderReportThismonth];
          return Response::json($this->_result,200);
 
 	 }

@@ -19,9 +19,12 @@ use DB;
 use App\User;
 use App\Driver;
 use Auth;
+use Carbon\Carbon;
+use App\Models\General\category;
 use Route;
 use App\Http\ViewModel\ResultVM;
-use App\Setting;
+use  App\Events\drivers_status;
+use App\Models\Dashboard\mini_dashboard;
 
 class DriverController extends Controller
 {
@@ -47,8 +50,9 @@ class DriverController extends Controller
             'image' => 'image|required',
             'frId' => 'image|required',
             'backId' => 'image|required',
+            'category' => 'required|exists:categories,id',
          ]
-      );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -56,6 +60,15 @@ class DriverController extends Controller
             return Response::json($this->_result, 200);
         }
 
+        $mini_dashboard = $request->dashboardId;
+        if ($mini_dashboard != 0) {
+            $mini_dashboard = mini_dashboard::find($mini_dashboard);
+            if (count($mini_dashboard->drivers)  >= $mini_dashboard->number_of_drivers) {
+                $this->_result->IsSuccess = false;
+                $this->_result->FaildReason = trans('messages.Globale.maxNumberExeeded');
+                return Response::json($this->_result, 200);
+            }
+        }
 
 
         if ($request->frId) {
@@ -88,6 +101,9 @@ class DriverController extends Controller
         $DriverInfo->user_id   = $NewDriver->id;
         $DriverInfo->telephone = $request->telephone;
         $DriverInfo->identity =$request->identity;
+        $DriverInfo->category_id    = $request->category;
+        $DriverInfo->mini_dashboard_id    = $request->dashboardId==0?$request->mini_dashboard : $request->dashboardId ;
+
         $DriverInfo->image     = $image ;
         $DriverInfo->backId    = $backId;
         $DriverInfo->frontId    = $frontId;
@@ -112,8 +128,9 @@ class DriverController extends Controller
             'telephone'     =>'sometimes|numeric|min:5',
             'identity'     =>'required|numeric|unique:drivers,identity,'.$id.',user_id',
             'canReceiveOrder'        =>'required|numeric',
+            'category' => 'required|exists:categories,id',
          ]
-         );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -125,6 +142,8 @@ class DriverController extends Controller
             'telephone'=>$request->telephone,
             'identity'=>$request->identity,
             'canReceiveOrder'=>$request->canReceiveOrder,
+            'category_id'    => $request->category,
+            'mini_dashboard_id'  =>$request->dashboardId==0?$request->mini_dashboard : $request->dashboardId
          ];
 
         if ($request->image) {
@@ -163,14 +182,22 @@ class DriverController extends Controller
 
     public function get_all_drivers()
     {
-        $all_resturants = DB::table('users')
-                ->join('drivers', 'users.id', '=', 'drivers.user_id')
-                ->where('users.UserType', 'driver')
-                ->orderBy('users.id', 'ASC')
-                ->get();
+        $all_drivers = DB::table('drivers')
+        ->join('users', 'users.id', '=', 'drivers.user_id')
+        ->join('categories', 'categories.id', '=', 'drivers.category_id')
+        ->leftjoin('mini_dashboards', 'mini_dashboards.id', '=', 'drivers.mini_dashboard_id')
+        ->select('users.name', 'mini_dashboards.name as mini_dashboard', 'users.email', 'users.Status', 'drivers.telephone', 'drivers.CurrentBalance', 'users.id', 'users.rate', 'categories.arabicname', 'categories.englishname')
+        ->where('users.UserType', 'driver');
+        if (request()->dashboardId!=0) {
+            $all_drivers= $all_drivers->where('drivers.mini_dashboard_id', request()->dashboardId);
+        }
+        $all_drivers= $all_drivers
+                        ->orderBy('users.id', 'ASC')
+                        ->get();
+
 
         $this->_result->IsSuccess = true;
-        $this->_result->Data = $all_resturants;
+        $this->_result->Data = $all_drivers;
         return Response::json($this->_result, 200);
     }
 
@@ -179,13 +206,27 @@ class DriverController extends Controller
         $Driver = DB::table('users')
                 ->join('drivers', 'users.id', '=', 'drivers.user_id')
                 ->where('users.UserType', 'driver')->where('drivers.user_id', $id)
-                ->get();
-
+                ->first();
+        $response = [
+            'driver'=>$Driver,
+            'categories'=>category::getdriverCategories(),
+            'mini_dashboards'=>mini_dashboard::getAuthorizedOnly()
+        ];
         $this->_result->IsSuccess = true;
-        $this->_result->Data = $Driver;
+        $this->_result->Data = $response;
         return Response::json($this->_result, 200);
     }
 
+    public function getCreatePage()
+    {
+        $response = [
+            'categories'=>category::getdriverCategories(),
+            'mini_dashboards'=>mini_dashboard::getAuthorizedOnly()
+        ];
+        $this->_result->IsSuccess = true;
+        $this->_result->Data = $response;
+        return Response::json($this->_result, 200);
+    }
 
     public function destroy(Driver $driver, $id)
     {
@@ -214,7 +255,7 @@ class DriverController extends Controller
             'email'=>'required',
             'password'=>'required|string',
         ]
-       );
+        );
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
             $this->_result->FaildReason =  $validation->errors()->first();
@@ -319,7 +360,7 @@ class DriverController extends Controller
                 'lat'           =>'required|string',
 
              ]
-         );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -330,7 +371,7 @@ class DriverController extends Controller
 
         $update =  DB::table('drivers')
                   ->where('user_id', $request->driver_id)
-                  ->update(['lat' => $request->lat,'lng' => $request->lng]);
+                  ->update(['lat' => $request->lat,'lng' => $request->lng,'updated_at'=> Carbon::now()]);
 
         $this->_result->IsSuccess = true;
         $this->_result->Data = $update;
@@ -345,10 +386,10 @@ class DriverController extends Controller
             [
 
                 'driver_id'     =>'required|numeric',
-                'deviceToken'   =>'required|string',
+                'deviceToken'   =>'string',
 
              ]
-         );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -360,7 +401,15 @@ class DriverController extends Controller
         $update =  DB::table('drivers')
                   ->where('user_id', $request->driver_id)
                   ->update(['deviceToken' => $request->deviceToken]);
+        if ($update > 0 &&($request->deviceToken==''||$request->deviceToken==null)) {
+            $update2 =  DB::table('drivers')
+            ->where('user_id', $request->driver_id)
+            ->update(['availability' => 'of']);
 
+            if ($update2 > 0) {
+                event(new drivers_status($request->driver_id));
+            }
+        }
         $this->_result->IsSuccess = true;
         $this->_result->Data = $update;
         return Response::json($this->_result, 200);
@@ -376,7 +425,7 @@ class DriverController extends Controller
                 'status'   =>'required|in:on,off,ontrip',
 
              ]
-            );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -389,6 +438,11 @@ class DriverController extends Controller
                   ->where('user_id', $request->driver_id)
                   ->update(['availability' => $request->status]);
 
+        if ($update > 0) {
+            event(new drivers_status($request->driver_id));
+        }
+
+
         $this->_result->IsSuccess = true;
         $this->_result->Data = $update;
         return Response::json($this->_result, 200);
@@ -400,17 +454,15 @@ class DriverController extends Controller
         $update =  DB::table('drivers')
                   ->where('user_id', $driver_id)
                   ->update(['CurrentBalance' => '0','canReceiveOrder' => '1']);
-
         $this->_result->IsSuccess = true;
         $this->_result->Data = $update;
         return Response::json($this->_result, 200);
     }//end reset_balance
-
     public function change_driver_password(Request $request)
     {
         $validation=Validator::make(
-                $request->all(),
-                [
+            $request->all(),
+            [
             'driver_id'=>'required|numeric',
             'oldpassword'=>'required|string|min:5',
             'password'=>'required|min:5|different:oldpassword',
@@ -418,7 +470,7 @@ class DriverController extends Controller
          //   'password' => 'nullable|required_with:password_confirmation|string|confirmed',
 
            ]
-            );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -441,8 +493,7 @@ class DriverController extends Controller
             $this->_result->FaildReason = "wrong Old password";
             return Response::json($this->_result, 200);
         }
-    }// end change_user_password
-
+    }// end change_driver_password
     public function get_app_version()
     {
         $setting  = DB::table('settings')
@@ -451,6 +502,75 @@ class DriverController extends Controller
 
         $this->_result->IsSuccess = true;
         $this->_result->Data = $setting;
+        return Response::json($this->_result, 200);
+    }// end get app version
+
+
+    //  public function change_busy_status(Request $request) {
+
+    //     $validation=Validator::make($request->all(),
+    //      [
+
+    //         'driver_id'     =>'required|numeric',
+    //         'busy'   =>'required|numeric|in:1,0',
+
+    //      ]);
+
+    //      if($validation->fails())
+    //      {
+    //         $this->_result->IsSuccess = false;
+    //         $this->_result->FaildReason =  $validation->errors()->first();
+    //         return Response::json($this->_result,200);
+    //      }
+
+
+    //       $update =  DB::table('drivers')
+    //           ->where('user_id', $request->driver_id)
+    //           ->update(['busy' => $request->busy]);
+
+    //       $this->_result->IsSuccess = true;
+    //       $this->_result->Data = $update;
+    //      return Response::json($this->_result,200);
+
+    //  } // end change_busy_status
+
+
+    public function get_driver_data($driver_id)
+    {
+        $driverData =  DB::table('drivers')
+                  ->leftJoin('users', 'drivers.user_id', '=', 'users.id')
+                  ->select('users.name', 'users.email', 'users.rate', 'users.Status', 'drivers.telephone', 'drivers.image', 'drivers.CurrentBalance', 'drivers.canReceiveOrder', 'drivers.busy', 'drivers.availability', 'drivers.user_id as Driver_Id')
+                  ->where('drivers.user_id', $driver_id)
+                  ->get();
+
+
+        if (count($driverData) > 0) {
+            $this->_result->IsSuccess = true;
+            $this->_result->Data =[$driverData->first()];
+            return Response::json($this->_result, 200);
+        } else {
+            $this->_result->IsSuccess = false;
+            $this->_result->FaildReason = "No Data For This ID";
+            return Response::json($this->_result, 200);
+        }
+    } // end get_driver_data
+
+    public function driver_status_page()
+    {
+        $driveronline = DB::table('users')
+        ->join('drivers', 'users.id', '=', 'drivers.user_id')
+        ->select('users.name', 'drivers.lat', 'drivers.lng', 'users.id', 'drivers.busy', 'drivers.availability')
+        ->where('users.UserType', 'driver')->whereNotNull('drivers.deviceToken')->where('drivers.busy', 0)->where('drivers.availability', 'on')
+        ->get();
+
+        $driverobusy = DB::table('users')
+        ->join('drivers', 'users.id', '=', 'drivers.user_id')
+        ->select('users.name', 'drivers.lat', 'drivers.lng', 'users.id', 'drivers.busy', 'drivers.availability')
+        ->where('users.UserType', 'driver')->whereNotNull('drivers.deviceToken')->where('drivers.busy', 1)->where('drivers.availability', 'on')
+        ->get();
+
+        $this->_result->IsSuccess = true;
+        $this->_result->Data =['driverobusy'=>$driverobusy,'driveronline'=>$driveronline];
         return Response::json($this->_result, 200);
     }
 }

@@ -16,7 +16,7 @@ class CreateAdminsTable extends Migration
         Schema::create('admins', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->enum('AdminType',['manager','supervisor','chief']);
-            $table->boolean('hidden');
+            $table->boolean('hidden')->default(0);
 
             $table->unsignedBigInteger('user_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');

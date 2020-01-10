@@ -11,14 +11,17 @@ use App\User;
 use App\Order;
 use App\Driver;
 use App\Http\ViewModel\ResultVM;
+use App\Http\ViewModel\OrderSearchVM;
+
 use App\Jobs\updateFireBase;
 
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
 use Kreait\Firebase\Database;
 use Carbon\Carbon;
-
 use Illuminate\Support\Facades\Input;
+use App\Order_driver as Order_driver_Table;
+use  App\Events\drivers_status;
 
 class OrderController extends Controller
 {
@@ -183,6 +186,30 @@ class OrderController extends Controller
                 ->getReference('Orders/'.$order['resturant_id'].'/'.$order['id'])
                 ->set(null);
 
+                if ($order->driver_id) {
+                    $otherDriverOrders  =  DB::table('orders')->where('driver_id', $order->driver_id)->where('status', '>=', '1')->where('status', '<', '4')->count();
+
+                    if ($otherDriverOrders ==0) {
+                        DB::table('drivers')->where('user_id', $order->driver_id)->update(["busy"=>false]);
+                        event(new drivers_status($order->driver_id));
+                    }
+                } else {
+                    $unluckyDrivers = Order_driver_Table::where('order_id', $order->id)->where('status', '1')
+                ->get();
+
+
+                    foreach ($unluckyDrivers as $unlucky) {
+                        DB::table('drivers')->where('user_id', $unlucky->driver_id)->update(["busy"=>false]);
+                        event(new drivers_status($unlucky->driver_id));
+                    }
+
+                    $DriversDidnotRespond = Order_driver_Table::where('order_id', $order->id)->where('status', '0')->get();
+
+                    foreach ($DriversDidnotRespond as $notResponded) {
+                        DB::table('drivers')->where('user_id', $notResponded->driver_id)->update(["busy"=>false]);
+                        event(new drivers_status($notResponded->driver_id));
+                    }
+                }
                 $this->_result->IsSuccess = true;
                 return Response::json($this->_result, 200);
             } elseif ($order->status < 0) {
@@ -191,7 +218,7 @@ class OrderController extends Controller
             } else {
                 $this->_result->IsSuccess = false;
                 $this->_result->FaildReason =  trans('messages.Driver_Arrived');
-                ;
+
                 return Response::json($this->_result, 200);
             }
         } else {
@@ -262,14 +289,20 @@ class OrderController extends Controller
                     $update =  DB::table('orders')
                       ->where('id', $request->order_id)
                       ->update(['status' => $request->status, 'delivered_at'=>Carbon::now()]);
+                    $otherDriverOrders  =  DB::table('orders')->where('driver_id', $order->driver_id)->where('status', '>=', '1')->where('status', '<', '4')->count();
+
 
 
                     $Driver =Driver::where('user_id', $order->driver_id)
                       ->first();
 
                     $Driver->CurrentBalance += $order->deliveryCost;
-                    if ($Driver->CurrentBalance >= 100) {
+                    if ($Driver->CurrentBalance >= 4000) {
                         $Driver->canReceiveOrder = '0';
+                    }
+                    if ($otherDriverOrders ==0) {
+                        $Driver->busy =false;
+                        event(new drivers_status($Driver->user_id));
                     }
                     $Driver->save();
                 }
@@ -288,29 +321,27 @@ class OrderController extends Controller
     public function get_current_order($driver_id)
     {
         $currentOrder =  DB::table('orders')
-                  ->join('order_drivers', 'orders.id', '=', 'order_drivers.order_id')
                   ->join('resturants', 'resturants.user_id', '=', 'orders.resturant_id')
                   ->join('users', 'users.id', '=', 'orders.resturant_id')
                   ->select('orders.id', 'orders.status as status', 'deliveryCost', 'customerPhone', 'customerName', 'OrderNumber', 'orderDest', 'orderCost', 'users.name as ResturantName', 'users.rate as ResturantRate', 'resturants.user_id as resturantID', 'resturants.lat as resturantslat', 'resturants.lng as resturantslng', 'resturants.location as resturantslocation', 'resturants.telephone as resturantsTelephone')
                   ->where('orders.driver_id', $driver_id)->whereIn('orders.status', ['1', '2', '3'])
-                  ->get();
+                  ->get()->toArray();
 
 
 
 
         $pendingOrder =DB::table('orders')
-                ->join('order_drivers', 'orders.id', '=', 'order_drivers.order_id')
+                ->join('order_drivers', 'order_drivers.order_id', 'orders.id')
                 ->join('resturants', 'resturants.user_id', '=', 'orders.resturant_id')
                 ->join('users', 'users.id', '=', 'orders.resturant_id')
-                ->select('orders.id', 'orders.status as status', 'customerPhone', 'customerName', 'OrderNumber', 'orderDest', 'orderCost', 'users.name as ResturantName', 'users.rate as ResturantRate', 'resturants.user_id as resturantID', 'resturants.lat as resturantslat', 'resturants.lng as resturantslng', 'resturants.location as resturantslocation', 'resturants.telephone as resturantsTelephone')
+                ->select('orders.id', 'orders.status as status', 'deliveryCost', 'customerPhone', 'customerName', 'OrderNumber', 'orderDest', 'orderCost', 'users.name as ResturantName', 'users.rate as ResturantRate', 'resturants.user_id as resturantID', 'resturants.lat as resturantslat', 'resturants.lng as resturantslng', 'resturants.location as resturantslocation', 'resturants.telephone as resturantsTelephone')
                 ->where('order_drivers.driver_id', $driver_id)->where('order_drivers.status', '0')->whereNull('orders.driver_id')->whereIn('orders.status', ['0'])
-                ->get();
+                ->get()->toArray();
 
         $this->_result->IsSuccess = true;
-        $this->_result->Data =['CurrentOrders'=>$currentOrder,'PendingOrders'=>$pendingOrder];
+        $this->_result->Data =['CurrentOrders'=>array_merge($currentOrder, $pendingOrder)];
         return Response::json($this->_result, 200);
     } // end get_current_order
-
 
 
 
@@ -334,7 +365,6 @@ class OrderController extends Controller
 
 
         $orderHistory =  DB::table('orders')
-                  ->join('order_drivers', 'orders.id', '=', 'order_drivers.order_id')
                   ->join('resturants', 'resturants.user_id', '=', 'orders.resturant_id')
                   ->join('users', 'users.id', '=', 'orders.resturant_id')
                   ->select('orders.id', 'orders.status as status', 'deliveryCost', 'customerPhone', 'customerName', 'OrderNumber', 'orderDest', 'orderCost', 'users.name as ResturantName', 'resturants.lat as resturantslat', 'resturants.lng as resturantslng', 'resturants.location as resturantslocation', 'resturants.telephone as resturantsTelephone')
@@ -462,7 +492,7 @@ class OrderController extends Controller
 
            'driver_id'     =>'required|numeric',
            'order_id' =>'required|numeric',
-           'rate' =>'required|in:1,2,3,4,5',
+           'rate' =>'required',
 
 
         ]
@@ -476,7 +506,6 @@ class OrderController extends Controller
 
 
         $update =  DB::table('orders')
-                  ->where('driver_id', $request->driver_id)
                   ->where('id', $request->order_id)
                   ->update(['resturantRate' => $request->rate]);
 
@@ -550,5 +579,51 @@ class OrderController extends Controller
         ->getReference('Orders/'.$order->resturant_id.'/'.$order->id.'/status')
         ->set($order->status);
         }
+    }
+
+    public function GetListPage(OrderSearchVM $searchVM)
+    {
+        $orders  = $searchVM->queryBuilder->select('orders.id as OrderId', 'orders.status as OrderStatus', 'orders.customerName', 'orders.customerPhone', 'orders.orderDest as Location', 'orders.orderCost', 'orders.deliveryCost', 'orders.companyProfit', 'orders.created_at', 'orders.expectedDeliveryCost', 'orders.driverRate', 'orders.resturantRate', 'd.name as driver', 'r.name as shop')->orderBy('orders.id', 'DESC')->paginate(10);
+
+        $ordersStatus =  $searchVM->queryBuilder->select('orders.status as orderStatus ', DB::raw("count(`orders`.`status`) as count"))->groupBy('orders.status')->get();
+
+        $this->_result->Data = ['orders' =>$orders,'status'=>$ordersStatus];
+        return Response::json($this->_result);
+    }
+
+    public function GetDetailsPage(Request $request)
+    {
+        $validation=Validator::make(
+            $request->all(),
+            [
+
+             'id'     =>'required|numeric|exists:orders,id',
+            ]
+          );
+
+        if ($validation->fails()) {
+            $this->_result->IsSuccess = false;
+            $this->_result->FaildReason =  $validation->errors()->first();
+            return Response::json($this->_result, 200);
+        }
+
+        $order  =  DB::table('orders')
+        ->join('resturants', 'resturants.user_id', '=', 'orders.resturant_id')
+        ->join('users', 'users.id', '=', 'orders.resturant_id')
+        ->leftjoin('drivers', 'drivers.user_id', '=', 'orders.driver_id')
+        ->leftjoin('users as d', 'd.id', '=', 'orders.driver_id')
+        ->select('orders.*', 'd.name as dname', 'drivers.telephone as dtel', 'd.email as demail', 'deliveryCost', 'customerPhone', 'customerName', 'OrderNumber', 'orderDest', 'orderCost', 'users.name as ResturantName', 'users.rate as ResturantRate', 'resturants.user_id as resturantID', 'resturants.location as resturantslocation', 'resturants.lng as resturantslng', 'resturants.location as resturantslocation', 'resturants.telephone as resturantsTelephone','users.email as ResturantEmail')
+        ->where('orders.id', $request->id)
+        ->first();
+        $orderdrivers  =  DB::table('order_drivers')
+        
+        ->join('users', 'users.id', '=', 'order_drivers.driver_id')
+         ->select('users.name','order_drivers.status','order_drivers.cost')   
+        ->where('order_drivers.order_id', $request->id)
+        ->get()->toArray();
+
+        $this->_result->IsSuccess = true;
+        $this->_result->Data = ['order'=>$order,'drivers'=>$orderdrivers];
+        return Response::json($this->_result, 200);
     }
 }

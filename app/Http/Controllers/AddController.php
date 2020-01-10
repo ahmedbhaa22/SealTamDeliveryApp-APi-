@@ -40,12 +40,12 @@ class AddController extends Controller
     public function save_add(Add $add, Request $request)
     {
         $validation=Validator::make(
-             $request->all(),
-             [  'name'=>'required|string',
+            $request->all(),
+            [  'name'=>'required|string',
             'image' => 'image',
             'status'=>'required|numeric|in:0,1',
          ]
-         );
+        );
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
             $this->_result->FaildReason =  $validation->errors()->first();

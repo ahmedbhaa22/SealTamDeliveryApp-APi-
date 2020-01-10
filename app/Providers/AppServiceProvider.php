@@ -2,8 +2,11 @@
 
 namespace App\Providers;
 
+use App\Driver;
+use App\Observers\DriversObserver;
 use Illuminate\Support\ServiceProvider;
 use Schema;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -23,6 +26,5 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        //
     }
 }

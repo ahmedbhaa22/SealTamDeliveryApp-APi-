@@ -1,18 +1,25 @@
 <?php
 
 return [
-
     /*
-    |--------------------------------------------------------------------------
-    | Authentication Language Lines
-    |--------------------------------------------------------------------------
-    |
-    | The following language lines are used during authentication for various
-    | messages that we need to display to the user. You are free to modify
-    | these language lines according to your application's requirements.
-    |
+        Global Messages
     */
+  
+    "Globale"=>[
+        "InvalidId"=>"الرقم التعريفى خطأ",
+        "Saved"=>"تم الحفظ بنجاح",
+        "Active"=>"مفعل",
+        "NotActive"=>"غير مغعل",
+        "maxNumberExeeded"=>"تم تخطى العدد المصرح به من الطيارين"
 
+    ],
+    
+    "Auth"=>[
+        "NotActive"=>"المستخدم غير مفعل"
+    ],
+     /*
+        End Global Messages
+    */
     'wrongemailorpassword' => 'كلمة المرور او البريد الالكترونى غير صحيح',
     'NoDriverAvailAbleToAcceptThisRequest'=>"لا يوجد طيارين متاحين الان",
     'YouCannotAddOrdersForThisDriver'=>"هذا الطيار لا بمكنه استقبال اى طلبات اخرى",
