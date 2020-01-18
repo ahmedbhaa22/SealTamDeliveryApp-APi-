@@ -1,4 +1,4 @@
-<?php
+sss<?php
 
 namespace App\Http\Controllers;
 
@@ -466,9 +466,7 @@ class DriverController extends Controller
             'driver_id'=>'required|numeric',
             'oldpassword'=>'required|string|min:5',
             'password'=>'required|min:5|different:oldpassword',
-            'confirm-password' => 'required_with:password|same:password|min:5',
-         //   'password' => 'nullable|required_with:password_confirmation|string|confirmed',
-
+            'confirm-password' => 'required_with:password|same:password|min:5'
            ]
         );
 

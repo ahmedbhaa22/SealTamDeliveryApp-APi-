@@ -218,7 +218,6 @@ class OrderController extends Controller
             } else {
                 $this->_result->IsSuccess = false;
                 $this->_result->FaildReason =  trans('messages.Driver_Arrived');
-
                 return Response::json($this->_result, 200);
             }
         } else {
