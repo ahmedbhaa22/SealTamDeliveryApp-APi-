@@ -7,10 +7,15 @@ return [
   
     "Globale"=>[
         "InvalidId"=>"الرقم التعريفى خطأ",
+        "InvalidCode"=>"كود غير صحيح",
         "Saved"=>"تم الحفظ بنجاح",
         "Active"=>"مفعل",
         "NotActive"=>"غير مغعل",
-        "maxNumberExeeded"=>"تم تخطى العدد المصرح به من الطيارين"
+        "maxNumberExeeded"=>"تم تخطى العدد المصرح به من الطيارين",
+        "salaryisPaid"=>"تم دفع راتب هذا الشهر من قبل",
+        "salaryiszero"=>"الراتب اقل من الصفر",
+        "used"=>"مستخدم",
+
 
     ],
     

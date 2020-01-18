@@ -87,7 +87,7 @@ class HomeResource extends JsonResource
 
             'resturants'=>$this->resturants->count(),
 
-            "all_resturants"=>$this->resturants()->get(),
+            "all_resturants"=>$this->resturants()->with('user')->get(),
 
             "driversonline"=>$this->onlineDrivers()->get(),
 
@@ -122,7 +122,8 @@ class HomeResource extends JsonResource
                                             ->groupBy("status")
                                             ->whereMonth('orders.created_at', Carbon::now()->month)
                                             ->whereYear('orders.created_at', Carbon::now()->year)
-                                            ->get()
+                                            ->get(),
+            'mini_dashboard_days_count'=>$this->days_left,
             ];
     }
 }

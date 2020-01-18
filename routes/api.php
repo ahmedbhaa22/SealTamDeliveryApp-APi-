@@ -167,6 +167,7 @@ Route::middleware('setApplication:admin')->prefix('admin')->group(function () {
         Route::post('Create', "Dashboard\MiniDashBoardController@store")->middleware('can:create,App\Models\Dashboard\mini_dashboard');
         Route::get('GetEditPage/{id}', "Dashboard\MiniDashBoardController@getEditPage")->middleware('can:getEdit,App\Models\Dashboard\mini_dashboard');
         Route::post('Edit/{id}', "Dashboard\MiniDashBoardController@Edit")->middleware('can:update,App\Models\Dashboard\mini_dashboard');
+        Route::post('reactivate', "Dashboard\MiniDashBoardController@reactivate")->middleware('can:canReactivate,App\Models\Dashboard\mini_dashboard');
     });
     //==================================================================================
     //=========================Roles Group=====================================
@@ -189,7 +190,16 @@ Route::middleware('setApplication:admin')->prefix('admin')->group(function () {
         Route::post('Edit/{id}', "Dashboard\AdminController@Edit")->middleware('can:update,App\Admin');
         Route::post('change/userPassword', 'Dashboard\AdminController@change_user_password')->middleware('can:resetPassword,App\Admin');
     });
+    //==================================================================================
+    //=========================resturant Group=====================================
+    Route::middleware('auth:api', 'dashboardAccess')->prefix('resturant')->group(function () {
+        Route::post('create', 'ResturantsController@Create');
+        Route::post('edit/{id}', 'ResturantsController@Edit_Resturant');
+        Route::get('get_resturant/{id}', 'ResturantsController@get_resturant');
 
+        Route::get('all_resturants', 'ResturantsController@get_all_resturants');
+        Route::get('GetCreatePage', 'ResturantsController@getCreatePage');
+    });
     //==================================================================================
     //===============================drivers=============================================
     Route::middleware('auth:api', 'dashboardAccess')->prefix('driver')->group(function () {
@@ -202,8 +212,37 @@ Route::middleware('setApplication:admin')->prefix('admin')->group(function () {
         Route::get('get_driver/{id}', 'DriverController@get_driver')->middleware('can:update,App\Driver');
         Route::get('resetBalance/{id}', 'DriverController@reset_balance')->middleware('can:resetBalanace,App\Driver');
     });
-   
-   
+
+    //==================================================================================
+    //=========================employee Group===========================================
+    Route::middleware('auth:api', 'dashboardAccess')->prefix('employee')->group(function () {
+        Route::get('GetListPage', "Dashboard\EmployeesController@GetListPage")->middleware('can:view,App\Models\employee');
+        Route::post('Create', "Dashboard\EmployeesController@store")->middleware('can:create,App\Models\employee');
+        Route::get('GetEditPage/{id}', "Dashboard\EmployeesController@getEditPage")->middleware('can:update,App\Models\employee');
+        Route::post('Edit/{id}', "Dashboard\EmployeesController@Edit")->middleware('can:update,App\Models\employee');
+        Route::post('salary/deduction_raise/create', "Dashboard\SalaryDeductionRaiseController@create")->middleware('can:CanCreateDeduction,App\Models\salary_deduction_raise');
+        Route::post('salary/getPayCheckPage', "Dashboard\SalaryDeductionRaiseController@getPayCheckPage")->middleware('can:CanPaySalary,App\Models\salary_deduction_raise');
+        Route::get('salary/deduction_raise/Delete/{id}', "Dashboard\SalaryDeductionRaiseController@delete")->middleware('can:CanCreateDeduction,App\Models\salary_deduction_raise');
+        Route::post('salary/pay', "Dashboard\EmployeesController@paysalary")->middleware('can:CanPaySalary,App\Models\salary_deduction_raise');
+    });
+
+    //==================================================================================
+    //=========================Notification Group===========================================
+    Route::middleware('auth:api', 'dashboardAccess')->prefix('notification')->group(function () {
+        Route::get('GetList', "Dashboard\NotificationController@getNotficationList");
+        Route::get('getNotReadCount', "Dashboard\NotificationController@getNotReadCount");
+        Route::get('markAsRead/{id}', "Dashboard\NotificationController@markAsRead");
+        Route::get('delete/{id}', "Dashboard\NotificationController@delete");
+        Route::post('Create', "Dashboard\NotificationController@sendToDashboard");
+    });
+    //==================================================================================
+    //=========================Codes Group===========================================
+    Route::middleware('auth:api', 'dashboardAccess')->prefix('code')->group(function () {
+        Route::get('GetListPage', "Dashboard\CodeContoller@GetListPage")->middleware('can:view,App\Models\General\codes');
+        Route::get('Delete/{id}', "Dashboard\CodeContoller@delete")->middleware('can:delete,App\Models\General\codes');
+        Route::post('Create', "Dashboard\CodeContoller@store")->middleware('can:create,App\Models\General\codes');
+        Route::post('useForMiniDashboard', "Dashboard\CodeContoller@useForMiniDashboard");
+    });
     //==================================================================================
     //===============================Others=============================================
     Route::post('login', 'Users\AuthController@login');
@@ -215,7 +254,4 @@ Route::middleware('setApplication:admin')->prefix('admin')->group(function () {
     Route::post('order/getlistpage', 'OrderController@GetListPage')->middleware('auth:api', 'dashboardAccess');
     Route::get('getStatusPage', 'DriverController@driver_status_page')->middleware('auth:api', 'dashboardAccess');
     Route::post('order', 'OrderController@GetDetailsPage')->middleware('auth:api', 'dashboardAccess');
-    Route::post('resturant/create', 'ResturantsController@Create')->middleware('auth:api', 'dashboardAccess');
-    Route::post('resturant/edit/{id}', 'ResturantsController@Edit_Resturant')->middleware('auth:api', 'dashboardAccess');
-    Route::get('resturant/all_resturants', 'ResturantsController@get_all_resturants')->middleware('auth:api', 'dashboardAccess');
 });

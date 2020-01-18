@@ -19,7 +19,10 @@ class AuthServiceProvider extends ServiceProvider
         'App\Models\Dashboard\mini_dashboard' => 'App\Policies\mini_dashboardPolicy',
         'App\Models\General\category' => 'App\Policies\categoryPolicy',
         'App\Admin'=>"App\Policies\adminPolicy",
-        'App\Driver'=>"App\Policies\driverPolicy"
+        'App\Driver'=>"App\Policies\driverPolicy",
+        'App\Models\employee'=>"App\Policies\Employeepolicy",
+        'App\Models\salary_deduction_raise'=>"App\Policies\salarypolicy",
+        'App\Models\General\codes' => 'App\Policies\codesPolicy',
 
     ];
 

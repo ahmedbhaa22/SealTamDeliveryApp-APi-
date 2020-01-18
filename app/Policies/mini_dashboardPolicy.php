@@ -12,4 +12,9 @@ class mini_dashboardPolicy extends baseSuperDashBoardPolicy
     {
         parent::__construct('mini_dashboard');
     }
+
+    public function canReactivate($user)
+    {
+        return $user->havePermision('Can ReActivate MiniDashboard');
+    }
 }

@@ -13,6 +13,11 @@ class Driver extends Model
     {
         return $this->belongsTo('App\User');
     }
+
+    public function miniDashboard()
+    {
+        return $this->belongsTo('App\Models\Dashboard\mini_dashboard');
+    }
     public function online()
     {
         return  $this->join('users', 'users.id', '=', 'drivers.user_id')

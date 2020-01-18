@@ -16,6 +16,8 @@ use Route;
 use App\User;
 use App\Resturant;
 use App\Http\ViewModel\ResultVM;
+use App\Models\General\category;
+use App\Models\Dashboard\mini_dashboard;
 
 class ResturantsController extends Controller
 {
@@ -31,15 +33,17 @@ class ResturantsController extends Controller
     {
         $validation=Validator::make(
             $request->all(),
-            [  'name'			=>'required|string',
+            [
+            'name'			=>'required|string',
             'email'			=>'required|string|unique:users,email',
             'password'		=>'required|string|min:5',
             'lng'           =>'sometimes|nullable',
             'lat'           =>'sometimes|nullable',
             'location'      =>'sometimes|nullable',
             'telephone'     =>'sometimes|numeric|min:5',
+            'category' => 'required|exists:categories,id',
          ]
-         );
+        );
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
             $this->_result->FaildReason =  $validation->errors()->first();
@@ -61,6 +65,9 @@ class ResturantsController extends Controller
         $ResturantInfo->lng       = $request->lng;
         $ResturantInfo->telephone = $request->telephone;
         $ResturantInfo->location  = $request->location;
+        $ResturantInfo->category_id = $request->category;
+        $ResturantInfo->mini_dashboard_id    = $request->dashboardId==0?$request->mini_dashboard : $request->dashboardId ;
+
         $ResturantInfo->save();
 
 
@@ -82,8 +89,10 @@ class ResturantsController extends Controller
             'lat'           =>'sometimes|nullable',
             'location'      =>'sometimes|nullable',
             'telephone'     =>'sometimes|numeric|min:5',
+            'category' => 'required|exists:categories,id',
+
          ]
-         );
+        );
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
             $this->_result->FaildReason =  $validation->errors()->first();
@@ -97,8 +106,9 @@ class ResturantsController extends Controller
                 'lat'=>$request->lat,
                 'location'=>$request->location,
                 'telephone'=>$request->telephone,
+                'category_id'=> $request->category,
+                'mini_dashboard_id'=>$request->dashboardId==0?$request->mini_dashboard : $request->dashboardId
             ]);
-
 
         $this->_result->IsSuccess = true;
         $this->_result->Data = ['resturant'=>$NewResturant, 'info'=>$ResturantInfo];
@@ -110,14 +120,32 @@ class ResturantsController extends Controller
 
 
 
+    public function getCreatePage()
+    {
+        $response = [
+            'categories'=>category::getresturantCategories(),
+            'mini_dashboards'=>mini_dashboard::getAuthorizedOnly()
+        ];
+        $this->_result->IsSuccess = true;
+        $this->_result->Data = $response;
+        return Response::json($this->_result, 200);
+    }
 
     public function get_all_resturants()
     {
-        $all_resturants = DB::table('users')
-                ->join('resturants', 'users.id', '=', 'resturants.user_id')
-                ->where('users.UserType', 'resturant')
-                ->orderBy('users.id', 'ASC')
-                ->get();
+        $all_resturants = DB::table('resturants')
+        ->join('users', 'users.id', '=', 'resturants.user_id')
+        ->leftjoin('categories', 'categories.id', '=', 'resturants.category_id')
+        ->leftjoin('mini_dashboards', 'mini_dashboards.id', '=', 'resturants.mini_dashboard_id')
+        ->select('users.name', 'mini_dashboards.name as mini_dashboard', 'users.email', 'users.Status', 'resturants.telephone', 'resturants.location', 'users.id', 'users.rate', 'categories.arabicname', 'categories.englishname')
+        ->where('users.UserType', 'resturant');
+        if (request()->dashboardId!=0) {
+            $all_resturants= $all_resturants->where('resturants.mini_dashboard_id', request()->dashboardId);
+        }
+        $all_resturants= $all_resturants
+                        ->orderBy('users.id', 'ASC')
+                        ->get();
+
 
         $this->_result->IsSuccess = true;
         $this->_result->Data = $all_resturants;
@@ -130,9 +158,13 @@ class ResturantsController extends Controller
                 ->join('resturants', 'users.id', '=', 'resturants.user_id')
                 ->where('users.UserType', 'resturant')->where('resturants.user_id', $id)
                 ->first();
-
+        $response = [
+                    'resturant'=>$resturant,
+                    'categories'=>category::getresturantCategories(),
+                    'mini_dashboards'=>mini_dashboard::getAuthorizedOnly()
+                ];
         $this->_result->IsSuccess = true;
-        $this->_result->Data = $resturant;
+        $this->_result->Data = $response;
         return Response::json($this->_result, 200);
     }
 
@@ -155,7 +187,7 @@ class ResturantsController extends Controller
             'email'=>'required',
             'password'=>'required|string',
         ]
-       );
+        );
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
             $this->_result->FaildReason =  $validation->errors()->first();
@@ -209,56 +241,51 @@ class ResturantsController extends Controller
             return Response::json($this->_result, 200);
         }
     }
-      public function change_resturant_password(Request $request) {
-
-            $validation=Validator::make($request->all(),
-           [
+    public function change_resturant_password(Request $request)
+    {
+        $validation=Validator::make(
+            $request->all(),
+            [
             'restutant_id'=>'required|numeric',
             'oldpassword'=>'required|string',
             'password'=>'required|min:5|different:oldpassword',
             'confirm_password' => 'required_with:password|same:password|min:5',
          //   'password' => 'nullable|required_with:password_confirmation|string|confirmed',
 
-           ]);
+           ]
+        );
 
-           if($validation->fails())
-           {
-              $this->_result->IsSuccess = false;
-              $this->_result->FaildReason =  $validation->errors()->first();
-              return Response::json($this->_result,200);
+        if ($validation->fails()) {
+            $this->_result->IsSuccess = false;
+            $this->_result->FaildReason =  $validation->errors()->first();
+            return Response::json($this->_result, 200);
+        }
 
-           }
+        $user=User::where('id', $request->restutant_id)->first();
 
-           $user=User::where('id',$request->restutant_id)->first();
-
-           if (Hash::check($request->oldpassword, $user->password)) { 
-           
-               $update =  DB::table('users')
-                  ->where('id',$request->restutant_id)
+        if (Hash::check($request->oldpassword, $user->password)) {
+            $update =  DB::table('users')
+                  ->where('id', $request->restutant_id)
                   ->update(['password' => Hash::make($request->password) ]);
 
-             $this->_result->IsSuccess = true;
-             $this->_result->Data = $update;
-             return Response::json($this->_result,200);
+            $this->_result->IsSuccess = true;
+            $this->_result->Data = $update;
+            return Response::json($this->_result, 200);
+        } else {
+            $this->_result->IsSuccess = false;
+            $this->_result->FaildReason = trans("messages.wrongemailorpassword");
+            return Response::json($this->_result, 200);
+        }
+    }
 
-            } else {
+    public function get_app_version()
+    {
+        $setting  = DB::table('settings')
+                ->select('id', 'key', 'value')
+                ->where('key', 'ResturantAppVersion')->first();
 
-                $this->_result->IsSuccess = false;
-                 $this->_result->FaildReason = trans("messages.wrongemailorpassword");
-                 return Response::json($this->_result,200);
-            }
-
-
-         }
-         
-          public function get_app_version() {
-
-            $setting  = DB::table('settings')
-                ->select('id','key','value')
-                ->where('key','ResturantAppVersion')->first();
-
-             $this->_result->IsSuccess = true;
-             $this->_result->Data = $setting;
-             return Response::json($this->_result,200);
-        }// end get app version 
+        $this->_result->IsSuccess = true;
+        $this->_result->Data = $setting;
+        return Response::json($this->_result, 200);
+    }// end get app version
 }

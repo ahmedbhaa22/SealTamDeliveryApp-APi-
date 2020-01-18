@@ -7,10 +7,6 @@ use Storage;
 
 class BaseModel extends Model
 {
-    public function store($request)
-    {
-    }
-
     public function storeFile($foldername, $fieldname)
     {
         if (request()->hasFile($fieldname)) {

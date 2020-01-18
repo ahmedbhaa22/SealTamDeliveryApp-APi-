@@ -6,6 +6,7 @@ use App\Http\Resources\MiniDashboardResource;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use App\Models\income;
 
 class mini_dashboard extends Model
 {
@@ -93,5 +94,12 @@ class mini_dashboard extends Model
         $this->earning_ratio = $request->earning_ratio;
         $this->number_of_drivers =$request->number_of_drivers;
         $this->days_left =$request->days_left;
+    }
+
+    public function reactivate($request)
+    {
+        (new income())->storeMiniDasboardProfit($request);
+        $this->days_left +=$request->days;
+        $this->save();
     }
 }

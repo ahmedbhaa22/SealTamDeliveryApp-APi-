@@ -240,7 +240,7 @@ class OrderController extends Controller
                 'status'   =>'required|in:2,3,4,5',
 
              ]
-            );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -293,7 +293,7 @@ class OrderController extends Controller
 
 
 
-                    $Driver =Driver::where('user_id', $order->driver_id)
+                    $Driver =Driver::where('user_id', $order->driver_id)->with('miniDashboard')
                       ->first();
 
                     $Driver->CurrentBalance += $order->deliveryCost;
@@ -305,6 +305,7 @@ class OrderController extends Controller
                         event(new drivers_status($Driver->user_id));
                     }
                     $Driver->save();
+                    Order::addOrderExpenseAndIncome($order->id, $Driver);
                 }
 
                 $order = Order::find($request->order_id);
@@ -355,7 +356,7 @@ class OrderController extends Controller
                 'date' => 'date_format:"Y-m-d"|required',
 
              ]
-            );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -402,7 +403,7 @@ class OrderController extends Controller
                     'resturant'     =>'required|exists:users,id',
                     'date' => 'date_format:"Y-m-d"|required',
                 ]
-            );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -439,7 +440,7 @@ class OrderController extends Controller
 
 
         ]
-          );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -496,7 +497,7 @@ class OrderController extends Controller
 
 
         ]
-          );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -599,7 +600,7 @@ class OrderController extends Controller
 
              'id'     =>'required|numeric|exists:orders,id',
             ]
-          );
+        );
 
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
@@ -612,13 +613,13 @@ class OrderController extends Controller
         ->join('users', 'users.id', '=', 'orders.resturant_id')
         ->leftjoin('drivers', 'drivers.user_id', '=', 'orders.driver_id')
         ->leftjoin('users as d', 'd.id', '=', 'orders.driver_id')
-        ->select('orders.*', 'd.name as dname', 'drivers.telephone as dtel', 'd.email as demail', 'deliveryCost', 'customerPhone', 'customerName', 'OrderNumber', 'orderDest', 'orderCost', 'users.name as ResturantName', 'users.rate as ResturantRate', 'resturants.user_id as resturantID', 'resturants.location as resturantslocation', 'resturants.lng as resturantslng', 'resturants.location as resturantslocation', 'resturants.telephone as resturantsTelephone','users.email as ResturantEmail')
+        ->select('orders.*', 'd.name as dname', 'drivers.telephone as dtel', 'd.email as demail', 'deliveryCost', 'customerPhone', 'customerName', 'OrderNumber', 'orderDest', 'orderCost', 'users.name as ResturantName', 'users.rate as ResturantRate', 'resturants.user_id as resturantID', 'resturants.location as resturantslocation', 'resturants.lng as resturantslng', 'resturants.location as resturantslocation', 'resturants.telephone as resturantsTelephone', 'users.email as ResturantEmail')
         ->where('orders.id', $request->id)
         ->first();
         $orderdrivers  =  DB::table('order_drivers')
-        
+
         ->join('users', 'users.id', '=', 'order_drivers.driver_id')
-         ->select('users.name','order_drivers.status','order_drivers.cost')   
+         ->select('users.name', 'order_drivers.status', 'order_drivers.cost')
         ->where('order_drivers.order_id', $request->id)
         ->get()->toArray();
 

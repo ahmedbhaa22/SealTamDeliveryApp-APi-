@@ -8,6 +8,7 @@ use App\Http\Resources\MiniDashboardResource;
 use App\Models\Dashboard\mini_dashboard;
 use App\Http\Controllers\Shared\BaseController;
 use Validator;
+use App\Models\income;
 
 class MiniDashBoardController extends BaseController
 {
@@ -57,5 +58,14 @@ class MiniDashBoardController extends BaseController
     public function getEditPage($id)
     {
         return $this->Response(true, new MiniDashboardResource(mini_dashboard::find($id)));
+    }
+
+    public function reactivate(Request $request)
+    {
+        $mini_dashboard = mini_dashboard::find($request->mini_dashboard_id);
+        if ($mini_dashboard == null) {
+            return $this->Response(false, null, "messages.Globale.InvalidId");
+        }
+        return $this->Response(true, null);
     }
 }

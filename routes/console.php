@@ -20,16 +20,18 @@ Artisan::command('inspire', function () {
 use  App\Events\drivers_status;
 
 Artisan::command('DriverOff', function () {
+    $newTime = strtotime('-120 minutes');
+    $toBeOffline  =  date('Y-m-d H:i:s', $newTime);
 
-        $newTime = strtotime('-120 minutes');
-        $toBeOffline  =  date('Y-m-d H:i:s', $newTime);
-        
-        $drivers =  DB::table('drivers')->where('updated_at', '<=', $toBeOffline)->where('availability','on')->get();
-       
-       
-        foreach($drivers as $driver){
-            DB::table('drivers')->where('user_id', $driver->user_id)->update(['availability'=>'off']);
-            event(new drivers_status($driver->user_id));
+    $drivers =  DB::table('drivers')->where('updated_at', '<=', $toBeOffline)->where('availability', 'on')->get();
 
-        }
+
+    foreach ($drivers as $driver) {
+        DB::table('drivers')->where('user_id', $driver->user_id)->update(['availability'=>'off']);
+        event(new drivers_status($driver->user_id));
+    }
+});
+
+Artisan::command('mini_dashboards_days_count', function () {
+    DB::table('mini_dashboards')->where('days_left', '>', 0)->decrement('days_left');
 });

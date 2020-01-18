@@ -20,8 +20,13 @@ return [
         "Saved"=>"Saved SuccessFully",
         "Active"=>" Active",
         "maxNumberExeeded"=>"Max Number Of Driver exceeded",
+        "InvalidCode"=>"Invalid Code",
 
-        "NotActive"=>"Not Active"
+        "NotActive"=>"Not Active",
+        "salaryisPaid"=>"salary is Paid Already For This Month",
+        "salaryiszero"=>"salaryis less than zero",
+        "used"=>"used",
+
      ],
      "Auth"=>[
         "NotActive"=>"User Not Active"

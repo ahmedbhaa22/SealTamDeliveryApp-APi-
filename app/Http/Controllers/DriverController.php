@@ -184,7 +184,7 @@ class DriverController extends Controller
     {
         $all_drivers = DB::table('drivers')
         ->join('users', 'users.id', '=', 'drivers.user_id')
-        ->join('categories', 'categories.id', '=', 'drivers.category_id')
+        ->leftjoin('categories', 'categories.id', '=', 'drivers.category_id')
         ->leftjoin('mini_dashboards', 'mini_dashboards.id', '=', 'drivers.mini_dashboard_id')
         ->select('users.name', 'mini_dashboards.name as mini_dashboard', 'users.email', 'users.Status', 'drivers.telephone', 'drivers.CurrentBalance', 'users.id', 'users.rate', 'categories.arabicname', 'categories.englishname')
         ->where('users.UserType', 'driver');
