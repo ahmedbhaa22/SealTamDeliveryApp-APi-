@@ -33,5 +33,5 @@ Artisan::command('DriverOff', function () {
 });
 
 Artisan::command('mini_dashboards_days_count', function () {
-    DB::table('mini_dashboards')->where('days_left', '>', 0)->decrement('days_left');
+    DB::table('mini_dashboards')->where('days_left', '>', 0)->where('type', '<>', 'No Limit')->decrement('days_left');
 });

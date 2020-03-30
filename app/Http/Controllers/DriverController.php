@@ -1,4 +1,4 @@
-sss<?php
+<?php
 
 namespace App\Http\Controllers;
 
@@ -63,10 +63,12 @@ class DriverController extends Controller
         $mini_dashboard = $request->dashboardId;
         if ($mini_dashboard != 0) {
             $mini_dashboard = mini_dashboard::find($mini_dashboard);
-            if (count($mini_dashboard->drivers)  >= $mini_dashboard->number_of_drivers) {
-                $this->_result->IsSuccess = false;
-                $this->_result->FaildReason = trans('messages.Globale.maxNumberExeeded');
-                return Response::json($this->_result, 200);
+            if ($mini_dashboard->type=='custom'||$mini_dashboard->type=='Subscribtion') {
+                if (count($mini_dashboard->drivers)  >= $mini_dashboard->number_of_drivers) {
+                    $this->_result->IsSuccess = false;
+                    $this->_result->FaildReason = trans('messages.Globale.maxNumberExeeded');
+                    return Response::json($this->_result, 200);
+                }
             }
         }
 
@@ -143,9 +145,10 @@ class DriverController extends Controller
             'identity'=>$request->identity,
             'canReceiveOrder'=>$request->canReceiveOrder,
             'category_id'    => $request->category,
-            'mini_dashboard_id'  =>$request->dashboardId==0?$request->mini_dashboard : $request->dashboardId
          ];
-
+        if ($request->mini_dashboard) {
+            $newDriverData['mini_dashboard_id']=$request->dashboardId==0?$request->mini_dashboard : $request->dashboardId;
+        }
         if ($request->image) {
             Storage::delete($driver->first()->image);
             $file2 = request()->file('image');

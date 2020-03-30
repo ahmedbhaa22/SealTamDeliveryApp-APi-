@@ -57,7 +57,10 @@ Route::get('resturant/appVersion', 'ResturantsController@get_app_version');
 
 //Drivers Routes
 /* =================================================================*/
-Route::get('driver/get_driver/{id}', 'DriverController@get_driver')->middleware('auth:api');
+Route::get('driver/get_driver', 'Driver\DriverController@get_driver')->middleware('auth:api');
+Route::post('driver/change_category/{id}', 'Driver\DriverController@change_category')->middleware('auth:api');
+Route::get('driver/getResturantsMapPage', 'Driver\DriverController@getResturantsMapPage')->middleware('auth:api');
+
 /*Drivers api routes*/
 Route::post('driver/login', 'DriverController@login');
 Route::post('driver/addLocation', 'DriverController@add_location');
@@ -100,9 +103,10 @@ Route::post('add/edit', 'AddController@save_add')->middleware('auth:api');
 //Start Orders Routes
 /* =================================================================*/
 
-Route::post('order/create', 'ResturantApi\CurrentOrdersController@CreateNewOrder');
+Route::post('order/create', 'Order\OrderController@CreateOrder')->middleware('auth:api');
 Route::post('order/Response', 'ResturantApi\CurrentOrdersController@OrderNotficationResponse')->middleware('cors');
-Route::post('order/orderPlus', 'ResturantApi\CurrentOrdersController@order_plus');
+Route::post('order/orderPlus', 'ResturantApi\CurrentOrdersController@order_plus')->middleware('auth:api');
+Route::post('order/fixedresponse', 'Order\OrderController@ResponseFixedPrice')->middleware('auth:api');
 
 
 
@@ -166,6 +170,8 @@ Route::middleware('setApplication:admin')->prefix('admin')->group(function () {
         Route::get('GetListPage', "Dashboard\MiniDashBoardController@GetListPage")->middleware('can:getList,App\Models\Dashboard\mini_dashboard');
         Route::post('Create', "Dashboard\MiniDashBoardController@store")->middleware('can:create,App\Models\Dashboard\mini_dashboard');
         Route::get('GetEditPage/{id}', "Dashboard\MiniDashBoardController@getEditPage")->middleware('can:getEdit,App\Models\Dashboard\mini_dashboard');
+        Route::get('GetCreatePage', "Dashboard\MiniDashBoardController@getCreatePage")->middleware('can:create,App\Models\Dashboard\mini_dashboard');
+
         Route::post('Edit/{id}', "Dashboard\MiniDashBoardController@Edit")->middleware('can:update,App\Models\Dashboard\mini_dashboard');
         Route::post('reactivate', "Dashboard\MiniDashBoardController@reactivate")->middleware('can:canReactivate,App\Models\Dashboard\mini_dashboard');
     });
@@ -209,7 +215,7 @@ Route::middleware('setApplication:admin')->prefix('admin')->group(function () {
         Route::post('edit/{id}', 'DriverController@Edit_Driver')->middleware('can:update,App\Driver');
         Route::get('delete-driver/{id}', 'DriverController@destroy')->middleware('can:update,App\Driver');
         Route::get('all_drivers', 'DriverController@get_all_drivers')->middleware('can:getList,App\Driver');
-        Route::get('get_driver/{id}', 'DriverController@get_driver')->middleware('can:update,App\Driver');
+        Route::get('get_driver/{id}', 'DriverController@get_driver');
         Route::get('resetBalance/{id}', 'DriverController@reset_balance')->middleware('can:resetBalanace,App\Driver');
     });
 

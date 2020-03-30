@@ -246,7 +246,6 @@ class OrderController extends Controller
             $this->_result->FaildReason =  $validation->errors()->first();
             return Response::json($this->_result, 200);
         }
-
         $order = DB::table('orders')->where('driver_id', $request->driver_id)
              ->where('id', $request->order_id)->first();
 

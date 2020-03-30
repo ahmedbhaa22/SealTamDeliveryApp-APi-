@@ -15,11 +15,13 @@ class SystemMainModlesPolicy extends basePolicy
     public function create(User $user)
     {
         if (!((request()->dashboardId==0
-        || request()->mini_dashboard_id ==request()->dashboardId)
-        &&$user->havePermision('Can Create '.$this->modelName))
+        || (request()->mini_dashboard ==request()->dashboardId)
+        &&$user->havePermision('Can Create '.$this->modelName)))
     ) {
             return false;
         }
+
+
         return true;
     }
 
@@ -33,8 +35,8 @@ class SystemMainModlesPolicy extends basePolicy
     public function update(User $user)
     {
         if (!((request()->dashboardId==0
-        || request()->mini_dashboard_id ==request()->dashboardId)
-        &&$user->havePermision('Can Edit '.$this->modelName))
+        || (request()->mini_dashboard == request()->dashboardId)
+            &&$user->havePermision('Can Edit '.$this->modelName)))
     ) {
             return false;
         }

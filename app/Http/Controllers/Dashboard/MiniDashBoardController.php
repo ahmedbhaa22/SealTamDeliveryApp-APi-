@@ -9,17 +9,15 @@ use App\Models\Dashboard\mini_dashboard;
 use App\Http\Controllers\Shared\BaseController;
 use Validator;
 use App\Models\income;
+use App\Models\currency;
 
 class MiniDashBoardController extends BaseController
 {
     public $validationRule=
                 [
                     'name'			=>'required|string',
-                    'monthly_cost'		=>'required|numeric|min:0',
-                    'earning_ratio'		=>'required|numeric|min:0|max:100',
-                    'number_of_drivers'		=>'required|numeric|min:0',
+                    'earning_ratio'=>'numeric|max:100',
                     'active'		=>'boolean',
-                    'days_left'		=>'required|numeric|min:0'
                 ];
 
 
@@ -59,13 +57,19 @@ class MiniDashBoardController extends BaseController
     {
         return $this->Response(true, new MiniDashboardResource(mini_dashboard::find($id)));
     }
-
+    public function getCreatePage()
+    {
+        return $this->Response(true, [
+            "currencies"=> currency::all()
+        ]);
+    }
     public function reactivate(Request $request)
     {
         $mini_dashboard = mini_dashboard::find($request->mini_dashboard_id);
         if ($mini_dashboard == null) {
             return $this->Response(false, null, "messages.Globale.InvalidId");
         }
+        $mini_dashboard->reactivate($request);
         return $this->Response(true, null);
     }
 }

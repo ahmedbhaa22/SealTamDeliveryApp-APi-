@@ -4,6 +4,7 @@ namespace App\Models\General;
 
 use App\Models\BaseModel;
 use App\Http\Resources\categoryResource;
+use App\Http\Resources\Driver\categoryResource as categorymobileResource ;
 
 class category extends BaseModel
 {
@@ -37,6 +38,10 @@ class category extends BaseModel
         return categoryResource::collection(self::where('type', 'drivers')->get());
     }
 
+    public static function getdriverCategoriesMobile()
+    {
+        return categorymobileResource::collection(self::where('type', 'drivers')->get());
+    }
     public static function getresturantCategories()
     {
         return categoryResource::collection(self::where('type', 'shops')->get());

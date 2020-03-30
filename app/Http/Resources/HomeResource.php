@@ -124,6 +124,8 @@ class HomeResource extends JsonResource
                                             ->whereYear('orders.created_at', Carbon::now()->year)
                                             ->get(),
             'mini_dashboard_days_count'=>$this->days_left,
+            'canSendNotification'=>strtotime($this->last_requested_receipt) < strtotime('today'),
+
             ];
     }
 }

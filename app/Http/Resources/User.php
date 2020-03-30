@@ -30,7 +30,7 @@ class User extends JsonResource
                     function ($e) {
                         return $e['name'];
                     },
-                    $this->admin->permisions()->toArray(),
+                    $this->admin->permisions()->toArray()
                 );
             })
         ];

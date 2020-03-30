@@ -1,0 +1,9 @@
+{
+  "Login": {
+    "type": "object",
+    "properties": {
+      "email": { "type": "string" }
+    },
+    "xml": { "name": "Login" }
+  }
+}

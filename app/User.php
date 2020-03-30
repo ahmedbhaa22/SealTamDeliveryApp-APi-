@@ -8,6 +8,8 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use App\Http\Resources\User as UserResource;
+use App\Http\Resources\Driver\DriverResource;
+use App\Models\General\category;
 use Hash;
 
 class User extends Authenticatable
@@ -48,7 +50,14 @@ class User extends Authenticatable
     {
         return $this->hasOne(Admin::class);
     }
-
+    public function driver()
+    {
+        return $this->hasOne(Driver::class);
+    }
+    public function resturant()
+    {
+        return $this->hasOne(Resturant::class);
+    }
     public function havePermision($name)
     {
         return $this->admin->permisions()->where('name', $name)->first() !=null;
@@ -72,6 +81,13 @@ class User extends Authenticatable
         return new UserResource($this);
     }
 
+    public function getCurrentDriverProfile()
+    {
+        return [
+            'user'=> new DriverResource($this),
+            'categories'=>category::getdriverCategoriesMobile()
+        ];
+    }
 
     public function saveAdmin()
     {

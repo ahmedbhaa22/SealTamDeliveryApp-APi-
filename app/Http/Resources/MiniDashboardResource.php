@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\currency;
 
 class MiniDashboardResource extends JsonResource
 {
@@ -24,7 +25,9 @@ class MiniDashboardResource extends JsonResource
             "number_of_drivers"=>$this->when(request()->is('*Page*'), $this->number_of_drivers),
             "days_left"=>$this->when(request()->is('*Page*'), $this->days_left),
             "earning_ratio"=>$this->when(request()->is('*Page*'), $this->number_of_drivers),
-
+            "currencies"=>$this->when(request()->is('*/GetEditPage*'), currency::all()),
+            "type"=>$this->type,
+            "currency_id"=>$this->currency_id
         ];
     }
 }

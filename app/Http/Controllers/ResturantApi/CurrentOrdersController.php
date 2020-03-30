@@ -255,18 +255,30 @@ class CurrentOrdersController extends Controller
 
     public function order_plus(Request $request)
     {
-        $validation=Validator::make(
-            $request->all(),
-            [
-            'resturant_id'=>'required|exists:users,id|exists:resturants,user_id',
-            'orderCost'=>'required|numeric|max:500000',
-            'customerPhone'=>'required',
-            'order_id'=>'required|exists:orders,id',
-            'customerName'=>'required',
-            'orderDest'=>'required',
-            'deliveryCost'=>'required|numeric|max:500000',
-        ]
-        );
+        $resturant = auth()->user()->resturant;
+        if ($resturant->type=='Normal') {
+            $validation=Validator::make(
+                $request->all(),
+                [
+                'resturant_id'=>'required|exists:users,id|exists:resturants,user_id',
+                'orderCost'=>'required|numeric|max:500000',
+                'customerPhone'=>'required',
+                'order_id'=>'required|exists:orders,id',
+                'customerName'=>'required',
+                'orderDest'=>'required',
+                'deliveryCost'=>'required|numeric|max:500000',
+            ]
+            );
+        } else {
+            $validation=Validator::make(
+                $request->all(),
+                [
+                'resturant_id'=>'required|exists:users,id|exists:resturants,user_id',
+                'order_id'=>'required|exists:orders,id',
+            ]
+            );
+        }
+
         if ($validation->fails()) {
             $this->_result->IsSuccess = false;
             $this->_result->FaildReason =  $validation->errors()->first();
@@ -296,14 +308,14 @@ class CurrentOrdersController extends Controller
             'status' => '2',
             'resturant_id'=>$order->resturant_id,
             'orderCost'=>$request->orderCost,
-            'deliveryCost'=>$request->deliveryCost,
+            'deliveryCost'=>($resturant->type=='Normal') ? $request->deliveryCost :$resturant->order_price,
             'customerPhone'=>$request->customerPhone,
             'customerName'=>$request->customerName,
             'OrderNumber'=>$request->OrderNumber,
             'orderDest'=>$request->orderDest,
             'expectedDeliveryCost'=>$request->deliveryCost,
             "driver_id"=>$order->driver_id,
-            "companyProfit"=>$order->deliveryCost * .25 ,
+            "companyProfit"=>($resturant->type=='Normal') ? $request->deliveryCost* .25  :$resturant->order_price * .25 ,
             "arrived_at"=>$order->arrived_at
             ]);
             Order_driver_Table::create([

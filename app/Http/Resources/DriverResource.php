@@ -27,7 +27,9 @@ class DriverResource extends JsonResource
             'availability'=>$this->availability,
             'deviceToken'=>$this->deviceToken,
             'user_id'=>$this->user_id,
-            
+            'mini_dashboard_id'=>$this->miniDashboard->id ?? 0,
+            'currencyname'=>$this->miniDashboard->currency->name ?? 'جنيه مصرى',
+            'currencysymbol'=>$this->miniDashboard->currency->symbol ??'EGP'
         ];
     }
 }

@@ -16,6 +16,7 @@ class expense extends BaseModel
         $this->describtion = '('.$mini_dashboard->earning_ratio.'%) of order #'.$order->id .' Profit Goes To MiniDashboard #'.$mini_dashboard->id.' Due To Affliate Policy';
         $this->order_id = $order->id;
         $this->mini_dashboard_id = $mini_dashboard->id;
+        $this->currency_id= $mini_dashboard->currency_id;
         $this->date = date('Y-m-d');
 
         $this->save();

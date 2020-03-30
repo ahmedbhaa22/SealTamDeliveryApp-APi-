@@ -19,6 +19,12 @@ class Notification extends BaseModel
         $this->setData($request);
         $this->dashboard_id = request()->dashboardId==0 ? $request->minidashboardId :0;
         $this->save();
+        if ($this->dashboard_id==0) {
+            $minidash = \App\Models\Dashboard\mini_dashboard::find($request->dashboardId);
+           
+            $minidash->last_requested_receipt = now();
+            $minidash->save();
+        }
     }
 
     public static function getCurrentDashboardNotification()

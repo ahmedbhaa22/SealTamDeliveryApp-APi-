@@ -38,6 +38,7 @@ class checkIfOrderDone implements ShouldQueue
     public function handle()
     {
         $order =$this->order;
+
         if ($this->order->status == 0) {
             $EcludianDistanceQuery ="SELECT `driver_id`,cost,SQRT( POWER(`cost`- $order->expectedDeliveryCost,2) ) as DIstance FROM `order_drivers`  WHERE `order_id`='$order->id' AND `status` = '1' ORDER BY DIstance ASC , cost ASC LIMIT 10;";
             $costs  = DB::select($EcludianDistanceQuery);

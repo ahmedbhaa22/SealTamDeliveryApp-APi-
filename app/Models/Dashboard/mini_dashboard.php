@@ -22,6 +22,11 @@ class mini_dashboard extends Model
         return $this->hasMany('App\Driver', 'mini_dashboard_id', 'id');
     }
 
+    public function currency()
+    {
+        return $this->belongsTo('App\Models\currency', 'curency_id');
+    }
+
     public function resturants()
     {
         return $this->hasMany('App\Resturant', 'mini_dashboard_id', 'id');
@@ -90,16 +95,42 @@ class mini_dashboard extends Model
     private function setData(Request $request)
     {
         $this->name = $request->name;
-        $this->monthly_cost = $request->monthly_cost;
-        $this->earning_ratio = $request->earning_ratio;
-        $this->number_of_drivers =$request->number_of_drivers;
         $this->days_left =$request->days_left;
+        $this->currency_id =$request->currency_id;
+        $this->type =$request->type;
+
+        if ($request->type=='custom') {
+            $this->monthly_cost = $request->monthly_cost;
+            $this->earning_ratio = $request->earning_ratio;
+            $this->number_of_drivers =$request->number_of_drivers;
+        }
+        if ($request->type=='Subscribtion') {
+            $this->monthly_cost = $request->monthly_cost;
+            $this->earning_ratio = 25;
+            $this->number_of_drivers =$request->number_of_drivers;
+            $this->days_left =$request->days_left;
+        }
+        if ($request->type=='50/50') {
+            $this->monthly_cost = null;
+            $this->number_of_drivers =null;
+
+            $this->earning_ratio = 25;
+            $this->days_left =$request->days_left;
+        }
+        if ($request->type=='No Limit') {
+            $this->monthly_cost = null;
+            $this->number_of_drivers =null;
+
+            $this->earning_ratio = 25;
+            $this->days_left =$request->days_left;
+        }
     }
 
     public function reactivate($request)
     {
         (new income())->storeMiniDasboardProfit($request);
         $this->days_left +=$request->days;
+      
         $this->save();
     }
 }

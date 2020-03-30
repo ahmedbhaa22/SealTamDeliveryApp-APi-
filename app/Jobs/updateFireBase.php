@@ -13,6 +13,7 @@ use Kreait\Firebase\Factory;
 use Kreait\Firebase\ServiceAccount;
 use DB;
 use Kreait\Firebase\Database;
+
 class updateFireBase implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
@@ -23,10 +24,10 @@ class updateFireBase implements ShouldQueue
      * @return void
      */
 
-     public $resturant_id;
-     public $order;
+    public $resturant_id;
+    public $order;
 
-    public function __construct( $order)
+    public function __construct($order)
     {
         $this->resturant_id =$order->resturant_id;
         $this->order = $order;
@@ -39,43 +40,40 @@ class updateFireBase implements ShouldQueue
      */
     public function handle()
     {
-
+        echo $this->order->status;
         $serviceAccount = ServiceAccount::fromJsonFile(__DIR__.'/sealteamdeliveryapp-firebase-adminsdk-yra65-b8ba7856bd.json');
         $firebase = (new Factory)->withServiceAccount($serviceAccount)->withDatabaseUri('https://sealteamdeliveryapp.firebaseio.com')->create();
         $database = $firebase->getDatabase();
-        if($this->order->status == '-1'|| $this->order->status == '-2' || $this->order->status == '4'){
+        if ($this->order->status == '-1'|| $this->order->status == '-2' || $this->order->status == '4') {
             $newOrder = $database
             ->getReference('Orders/'.$this->order['resturant_id'].'/'.$this->order['id'])
             ->set(null);
-        }
-        else {
-            if($this->order->driver_id){
-            $Driver = DB::table('users')
-            ->join('drivers','users.id', '=', 'drivers.user_id')
-            ->where('users.UserType','driver')->where('drivers.user_id',$this->order->driver_id)
+        } else {
+            if ($this->order->driver_id) {
+                $Driver = DB::table('users')
+            ->join('drivers', 'users.id', '=', 'drivers.user_id')
+            ->where('users.UserType', 'driver')->where('drivers.user_id', $this->order->driver_id)
             ->first();
-            $this->order= $this->order->toArray();
-             $this->order['DriverName'] =$Driver->name;
-             $this->order['DriverPhone'] =$Driver->telephone;
-             $this->order['Driverlat'] =$Driver->lat;
-             $this->order['Driverlng'] =$Driver->lng;
-             $this->order['DriverRate'] =$Driver->rate;
-             $this->order['DriverImage'] =$Driver->image;
+                $this->order= $this->order->toArray();
+                $this->order['DriverName'] =$Driver->name;
+                $this->order['DriverPhone'] =$Driver->telephone;
+                $this->order['Driverlat'] =$Driver->lat;
+                $this->order['Driverlng'] =$Driver->lng;
+                $this->order['DriverRate'] =$Driver->rate;
+                $this->order['DriverImage'] =$Driver->image;
 
-             $newOrder = $database
+                $newOrder = $database
              ->getReference('Orders/'.$this->order['resturant_id'].'/'.$this->order['id'])
              ->set($this->order);
-        }
-        else{
-            $newOrder = $database
+            } else {
+                $newOrder = $database
             ->getReference('Orders/'.$this->resturant_id.'/'.$this->order->id)
             ->set($this->order);
+            }
         }
-    }
-
     }
     public function retryUntil()
-        {
-            return now()->addSeconds(3);
-        }
+    {
+        return now()->addSeconds(3);
+    }
 }

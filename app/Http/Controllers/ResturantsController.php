@@ -67,6 +67,8 @@ class ResturantsController extends Controller
         $ResturantInfo->location  = $request->location;
         $ResturantInfo->category_id = $request->category;
         $ResturantInfo->mini_dashboard_id    = $request->dashboardId==0?$request->mini_dashboard : $request->dashboardId ;
+        $ResturantInfo->shop_type = $request->type;
+        $ResturantInfo->order_price = $request->order_price;
 
         $ResturantInfo->save();
 
@@ -100,16 +102,20 @@ class ResturantsController extends Controller
         }
 
         $NewResturant=   User::where('id', $id)->update(['name'=>$request->name,'Status'=>$request->status]);
-
-        $ResturantInfo =    Resturant::where('user_id', $id)->update([
-                'lng'=>$request->lng,
-                'lat'=>$request->lat,
-                'location'=>$request->location,
-                'telephone'=>$request->telephone,
-                'category_id'=> $request->category,
-                'mini_dashboard_id'=>$request->dashboardId==0?$request->mini_dashboard : $request->dashboardId
-            ]);
-
+        $NewResturantData= [
+            'lng'=>$request->lng,
+            'lat'=>$request->lat,
+            'location'=>$request->location,
+            'telephone'=>$request->telephone,
+            'category_id'=> $request->category,
+            'shop_type' => $request->type,
+            'order_price' => $request->order_price,
+        ];
+        if ($request->mini_dashboard) {
+            $NewResturantData['mini_dashboard_id']=$request->dashboardId==0?$request->mini_dashboard : $request->dashboardId;
+        }
+        $ResturantInfo =    Resturant::where('user_id', $id)->update($NewResturantData);
+      
         $this->_result->IsSuccess = true;
         $this->_result->Data = ['resturant'=>$NewResturant, 'info'=>$ResturantInfo];
         return Response::json($this->_result, 200);

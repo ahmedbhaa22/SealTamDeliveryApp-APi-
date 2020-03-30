@@ -1,0 +1,184 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "2.0",
+    "title": "sealHero",
+    "contact": {
+      "name": "ahmed bhaa",
+      "email": "ahmedbhaa500@gmail.com"
+    }
+  },
+  "host": "localhost:8080",
+  "basePath": "/deliveryapp/public/api",
+  "schemes": ["http"],
+
+  "tags": [
+    {
+      "name": "drivers",
+      "description": "Everything about drivers "
+    },
+    {
+      "name": "order",
+      "description": "Everything about order "
+    }
+  ],
+  "paths": {
+    "/driver/login": {
+      "post": {
+        "tags": ["drivers"],
+        "operationId": "drivers Login",
+        "summary": "Login APi For Drivers",
+        "description": "Driver Login Api",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": { "$ref": "#/Login" }
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/driver/get_driver": {
+      "get": {
+        "tags": ["drivers"],
+        "operationId": "Current Driver Login",
+        "summary": "Current Driver Profile",
+        "description": "Current Driver Profile  Api",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "The Access Token  Which Comes From Login APi"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/driver/change_category/{category_id}": {
+      "post": {
+        "tags": ["drivers"],
+        "operationId": "Current Driver change_category",
+        "summary": "Current Driver change_category",
+        "description": "Current Driver change_category  Api",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "example": "s",
+            "description": "Bearer + The Access Token  Which Comes From Login APi"
+          },
+          {
+            "name": "category_id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "example": 1
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/driver/getResturantsMapPage": {
+      "get": {
+        "tags": ["drivers"],
+        "operationId": "getResturantsMapPage",
+        "summary": "Current Driver getResturantsMapPage",
+        "description": "getResturantsMapPage  Api",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "The Access Token  Which Comes From Login APi"
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/order/fixedresponse": {
+      "post": {
+        "tags": ["order"],
+        "operationId": "fixed Order Response APi",
+        "summary": "fixed Order Response APi",
+        "description": "fixed Order Response   Api",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "Authorization",
+            "in": "header",
+            "required": true,
+            "type": "string",
+            "description": "The Access Token  Which Comes From Login APi"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": { "$ref": "#/OrderResponse" }
+          }
+        ],
+        "responses": {}
+      }
+    },
+    "/order/changeStatus": {
+      "post": {
+        "tags": ["order"],
+        "operationId": "OrderStatus Order Response APi",
+        "summary": "OrderStatus Order Response APi",
+        "description": "OrderStatus Order Response   Api",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": { "$ref": "#/OrderStatus" }
+          }
+        ],
+        "responses": {}
+      }
+    }
+  },
+  "Login": {
+    "type": "object",
+    "properties": {
+      "email": { "type": "string", "example": "test@test.com" },
+      "password": { "type": "string", "example": "1234567890" }
+    },
+    "xml": { "name": "Login" }
+  },
+  "OrderResponse": {
+    "type": "object",
+    "properties": {
+      "order_id": { "type": "string", "example": "14" },
+      "status": { "type": "string", "example": "1" }
+    },
+    "xml": { "name": "OrderResponse" }
+  },
+  "OrderStatus": {
+    "type": "object",
+    "properties": {
+      "order_id": { "type": "string", "example": "14" },
+      "status": { "type": "string", "example": "1" },
+      "driver_id": { "type": "string", "example": "1" }
+    },
+    "xml": { "name": "OrderResponse" }
+  }
+}
